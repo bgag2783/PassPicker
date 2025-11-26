@@ -250,3 +250,137 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+/* Analytics Section */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+}
+
+.analytics-card {
+    background: #f9f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.analytics-card h3 {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+}
+
+/* Top Stations Bars */
+.station-bar-item {
+    margin-bottom: 12px;
+}
+
+.station-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.progress-bg {
+    background: #e5e5ea;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: var(--primary);
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+}
+
+/* Peak vs Off-Peak */
+.pie-chart-simple {
+    display: flex;
+    height: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.bar-segment {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.bar-segment.peak {
+    background: var(--warning);
+}
+
+.bar-segment.offpeak {
+    background: var(--success);
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.dot.peak { background: var(--warning); }
+.dot.offpeak { background: var(--success); }
+
+/* Spend Breakdown */
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e5ea;
+    font-size: 0.95rem;
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-row.total {
+    font-weight: 700;
+    margin-top: 8px;
+    border-top: 2px solid var(--border-color);
+}
+
+.stat-value {
+    font-weight: 600;
+}
+
+/* Map Section */
+#map {
+    height: 400px;
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    z-index: 1; /* Ensure map is below other overlays if any */
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.leaflet-popup-content {
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
