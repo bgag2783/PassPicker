@@ -384,3 +384,40 @@ footer {
     font-size: 0.9rem;
     line-height: 1.4;
 }
+
+/* Details Table */
+#trip-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    min-width: 600px; /* Ensure it doesn't squish too much on mobile */
+}
+
+#trip-details-table th,
+#trip-details-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e5ea;
+}
+
+#trip-details-table th {
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: #f9f9fa;
+    position: sticky;
+    top: 0;
+}
+
+#trip-details-table tr:last-child td {
+    border-bottom: none;
+}
+
+#trip-details-table td.cost-cell {
+    font-family: monospace;
+    font-weight: 500;
+}
+
+#trip-details-table .highlight-cost {
+    color: var(--success);
+    font-weight: 700;
+}

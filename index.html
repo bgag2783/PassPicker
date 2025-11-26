@@ -100,6 +100,27 @@
                     <div class="details">
                         <h3>Analysis Details</h3>
                         <p id="details-text"></p>
+                        <button id="view-details-btn" class="btn-secondary" style="margin-top: 16px; width: 100%;">View
+                            Trip Details</button>
+                    </div>
+
+                    <div id="details-table-container" class="hidden" style="margin-top: 24px; overflow-x: auto;">
+                        <table id="trip-details-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Entry</th>
+                                    <th>Exit</th>
+                                    <th>Fare</th>
+                                    <th>Your Cost</th>
+                                    <th>Optimal Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>

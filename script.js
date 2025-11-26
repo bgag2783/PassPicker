@@ -646,6 +646,22 @@ document.addEventListener('DOMContentLoaded', () => {
             Best Option: ${bestOption.type === 'none' ? 'Pay As You Go' : '$' + bestOption.level.toFixed(2) + ' Pass'}
         `;
 
+        // Render Table
+        renderTripTable(trips, bestOption);
+
+        // Setup Toggle
+        const btn = document.getElementById('view-details-btn');
+        const container = document.getElementById('details-table-container');
+
+        // Remove old listener to avoid duplicates if re-run
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
+        newBtn.addEventListener('click', () => {
+            container.classList.toggle('hidden');
+            newBtn.textContent = container.classList.contains('hidden') ? 'View Trip Details' : 'Hide Trip Details';
+        });
+
         // Scroll to results
         resultsSection.scrollIntoView({ behavior: 'smooth' });
 
@@ -654,6 +670,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 6. Render Map
         renderMap(trips);
+    }
+
+    function renderTripTable(trips, bestOption) {
+        const tbody = document.querySelector('#trip-details-table tbody');
+        tbody.innerHTML = '';
+
+        // Sort by date desc
+        const sortedTrips = [...trips].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        sortedTrips.forEach(trip => {
+            // Determine "Your Cost" (Current)
+            // If it was a pass trip, cost was 0. If PAYG, cost was trip.cost.
+            // But wait, if we are simulating "Current Plan", we should use the detectedPassLevel logic?
+            // The user wants "Cost with current plan".
+            // If detectedPassLevel > 0, then trips <= level are 0.
+            // If detectedPassLevel == 0, then trips are full fare.
+            // Actually, `trip.cost` ALREADY reflects the cost they paid (or 0 if pass).
+            // So `trip.cost` is "Your Cost".
+
+            // Determine "Optimal Cost" (Suggested)
+            let optimalCost = 0;
+            if (bestOption.type === 'none') {
+                // PAYG: You pay the full fare
+                // We need the original fare. 
+                // If trip.cost is 0 (pass), we need to know what the fare WOULD have been.
+                // We resolved this in `resolveFares`. So `trip.cost` might be 0, but we might have stored the resolved fare?
+                // Ah, `resolveFares` updates `trip.cost` ONLY if it was 0 and we found a fare.
+                // Wait, if `trip.isPassTrip` was true, `resolveFares` UPDATES `trip.cost` to the fare value!
+                // So `trip.cost` in `trips` array IS the resolved fare value now?
+                // Let's check `resolveFares`.
+                // Yes: `return { ...trip, cost: fare, isEstimated: false };`
+                // So `trip.cost` is the FARE VALUE.
+
+                // So "Your Cost" needs to be calculated based on `detectedPassLevel`.
+                // "Optimal Cost" needs to be calculated based on `bestOption.level`.
+
+                optimalCost = trip.cost; // Full fare
+            } else {
+                // Pass: You pay surcharge if fare > pass level
+                optimalCost = Math.max(0, trip.cost - bestOption.level);
+            }
+
+            // Re-calculate "Your Cost" for display
+            let yourCost = 0;
+            if (detectedPassLevel > 0) {
+                yourCost = Math.max(0, trip.cost - detectedPassLevel);
+            } else {
+                yourCost = trip.cost;
+            }
+
+            const tr = document.createElement('tr');
+
+            // Date/Time Parsing
+            const d = new Date(trip.date);
+            const dateStr = d.toLocaleDateString();
+            const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            tr.innerHTML = `
+                <td>${dateStr}</td>
+                <td>${timeStr}</td>
+                <td>${trip.entry || '-'}</td>
+                <td>${trip.exit || '-'}</td>
+                <td class="cost-cell">$${trip.cost.toFixed(2)}</td>
+                <td class="cost-cell">$${yourCost.toFixed(2)}</td>
+                <td class="cost-cell ${optimalCost < yourCost ? 'highlight-cost' : ''}">$${optimalCost.toFixed(2)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     let mapInstance = null;
