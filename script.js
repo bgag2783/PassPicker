@@ -1,0 +1,614 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('csv-file');
+    const resultsSection = document.getElementById('results-section');
+    const estimationSection = document.getElementById('estimation-section');
+    const calculateBtn = document.getElementById('calculate-btn');
+    const estimatedFareInput = document.getElementById('estimated-fare');
+    const passDisplayArea = document.getElementById('pass-display-area');
+    const detectedPassDisplay = document.getElementById('detected-pass-display');
+
+    let currentTrips = [];
+    let detectedPassLevel = 0; // 0 means no pass
+    let stationsData = [];
+    let faresData = [];
+    let stationErrors = new Set();
+
+    // Load reference data
+    fetch('stations.json')
+        .then(r => r.json())
+        .then(data => stationsData = data)
+        .catch(e => console.warn("Could not load stations.json", e));
+
+    fetch('fares.json')
+        .then(r => r.json())
+        .then(data => faresData = data)
+        .catch(e => console.warn("Could not load fares.json", e));
+
+    // Drag and Drop Handlers
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length) processFile(files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) processFile(e.target.files[0]);
+    });
+
+    calculateBtn.addEventListener('click', () => {
+        const estimatedFare = parseFloat(estimatedFareInput.value);
+        if (isNaN(estimatedFare) || estimatedFare < 0) {
+            alert("Please enter a valid fare amount.");
+            return;
+        }
+
+        // Apply estimate to pass trips
+        const tripsWithEstimate = currentTrips.map(trip => {
+            if (trip.isPassTrip) {
+                return { ...trip, cost: estimatedFare };
+            }
+            return trip;
+        });
+
+        estimationSection.classList.add('hidden');
+        calculateAndDisplayResults(tripsWithEstimate);
+    });
+
+    function processFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            stationErrors.clear(); // Clear previous errors
+            const trips = parseCSV(text);
+
+            if (trips.length === 0) {
+                alert("No valid trips found in CSV. Please check the format.");
+                return;
+            }
+
+            currentTrips = trips;
+
+            // Auto-detect pass from trips
+            const detectedPass = detectPassFromTrips(trips);
+            detectedPassLevel = detectedPass || 0;
+
+            // Calculate Date Range
+            const dates = trips.map(t => new Date(t.date));
+            const minDate = new Date(Math.min.apply(null, dates));
+            const maxDate = new Date(Math.max.apply(null, dates));
+            const dateRangeStr = `${minDate.toLocaleDateString()} - ${maxDate.toLocaleDateString()}`;
+
+            // Update Display
+            passDisplayArea.style.display = 'block';
+
+            let passInfoHtml = '';
+            if (detectedPass) {
+                passInfoHtml = `<span class="badge success">Auto-detected</span> $${detectedPass.toFixed(2)} Monthly Pass`;
+            } else {
+                passInfoHtml = `<span class="badge neutral">Auto-detected</span> No Active Pass (Pay As You Go)`;
+            }
+
+            detectedPassDisplay.innerHTML = `
+                <div style="margin-bottom: 8px; font-size: 0.9em; color: #666;">
+                    ${dateRangeStr}
+                </div>
+                ${passInfoHtml}
+            `;
+
+            // Check if we need estimation
+            // Try to resolve fares for pass trips first
+            let tripsWithFares = resolveFares(trips);
+
+            // Display any errors found during processing
+            displayErrors();
+
+            // If we still have trips with 0 cost that are pass trips AND haven't been resolved (isEstimated !== false)
+            const stillNeedsEstimation = tripsWithFares.some(t => t.isPassTrip && t.cost === 0 && t.isEstimated !== false);
+
+            resultsSection.classList.add('hidden');
+
+            if (stillNeedsEstimation) {
+                // Update currentTrips to the partially resolved ones, so the user only estimates the remainder?
+                // Or just ask for a global estimate to fill in the gaps.
+                // Let's use the resolved ones where possible.
+                currentTrips = tripsWithFares;
+
+                estimationSection.classList.remove('hidden');
+                // Scroll to estimation
+                estimationSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                estimationSection.classList.add('hidden');
+                calculateAndDisplayResults(tripsWithFares);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function resolveFares(trips) {
+        if (!stationsData.length || !faresData.length) {
+            console.warn("Missing reference data:", { stations: stationsData.length, fares: faresData.length });
+            return trips;
+        }
+
+        return trips.map(trip => {
+            if (trip.isPassTrip && trip.cost === 0) {
+                if (trip.operator === 'Metrorail') {
+                    if (trip.entry && trip.exit) {
+                        const fare = lookupFare(trip.entry, trip.exit, trip.date);
+                        if (fare !== null) {
+                            return { ...trip, cost: fare, isEstimated: false };
+                        } else {
+                            // Error already collected in lookupFare or findStation
+                        }
+                    } else {
+                        // console.warn("Trip missing entry/exit:", trip);
+                    }
+                } else if (trip.operator === 'Metrobus') {
+                    // Default Metrobus fare is $2.00, Express is $4.25
+                    let fare = 2.00;
+                    if (trip.entry && trip.entry.toLowerCase().includes('express')) {
+                        fare = 4.25;
+                    }
+                    return { ...trip, cost: fare, isEstimated: false };
+                }
+            }
+            return trip;
+        });
+    }
+
+    function lookupFare(entryName, exitName, dateStr) {
+        // 1. Normalize names
+        const entryStation = findStation(entryName);
+        const exitStation = findStation(exitName);
+
+        if (!entryStation || !exitStation) return null;
+
+        // Handle same station entry/exit
+        if (entryStation.Code === exitStation.Code) {
+            return 0;
+        }
+
+        // 2. Find fare pair
+        // faresData has { o: code, d: code, p: price, op: price }
+        const fareInfo = faresData.find(f => f.o === entryStation.Code && f.d === exitStation.Code);
+
+        if (!fareInfo) {
+            stationErrors.add(`Fare not found: ${entryStation.Name} -> ${exitStation.Name}`);
+            return null;
+        }
+
+        // 3. Determine Peak vs Off-Peak
+        // This is complex. WMATA peak hours:
+        // Weekdays: 5:00-9:30 AM, 3:00-7:00 PM
+        // Weekends: Off-peak
+        // We need to parse dateStr "MM/DD/YY HH:MM AM/PM"
+        const date = new Date(dateStr); // This might not work reliably across browsers for "10/30/25 09:07 PM"
+        // Better to parse manually or use a robust parser. 
+        // Let's try a simple manual parse for the specific format if Date() fails, 
+        // but usually modern JS handles "MM/DD/YY HH:MM AM/PM" okay-ish? 
+        // Actually, "10/30/25" might be read as 1925 or 2025. 
+        // Let's assume 20xx.
+
+        const isPeak = checkPeak(date);
+        return isPeak ? fareInfo.p : fareInfo.op;
+    }
+
+    function findStation(name) {
+        if (!name) return null;
+        const cleanName = name.toLowerCase().trim();
+        // Try exact match first
+        let station = stationsData.find(s => s.Name.toLowerCase() === cleanName);
+        if (station) return station;
+
+        // Try fuzzy / mapping
+        // CSV: "NoMa Gallaudet South" -> API: "NoMa-Gallaudet U"
+        // CSV: "Dupont Circle N" -> API: "Dupont Circle"
+        // CSV: "U Street-Cardozo" -> API: "U Street/African-Amer Civil War Memorial/Cardozo"
+
+        // Simple heuristic: match if API name contains CSV name parts or vice versa
+        // Or specific overrides
+        const overrides = {
+            "addison road": "Addison Road-Seat Pleasant",
+            "arch-navy mem": "Archives-Navy Memorial-Penn Quarter",
+            "archives-navy mem'l": "Archives-Navy Memorial-Penn Quarter",
+            "ballston": "Ballston-MU",
+            "ballston-mu": "Ballston-MU",
+            "benning road": "Benning Road",
+            "brookland": "Brookland-CUA",
+            "capitol heights": "Capitol Heights",
+            "capitol s": "Capitol South",
+            "columbia hgts": "Columbia Heights",
+            "downtown largo": "Downtown Largo",
+            "dulles airport": "Washington Dulles International Airport",
+            "dunn loring-merrifield": "Dunn Loring-Merrifield",
+            "dupont circle n": "Dupont Circle",
+            "dupont circle s": "Dupont Circle",
+            "east falls church": "East Falls Church",
+            "farragut n nw": "Farragut North",
+            "farragut north": "Farragut North",
+            "farragut west": "Farragut West",
+            "fed center sw": "Federal Center SW",
+            "fed triangle": "Federal Triangle",
+            "foggy bottom": "Foggy Bottom-GWU",
+            "frndshp hgts n": "Friendship Heights",
+            "gal pl-chntwn n": "Gallery Pl-Chinatown",
+            "gal pl-chntwn s": "Gallery Pl-Chinatown",
+            "gal plc-chntn e": "Gallery Pl-Chinatown",
+            "gal plc-chntn n": "Gallery Pl-Chinatown",
+            "gal plc-chntn s": "Gallery Pl-Chinatown",
+            "gal plc-chntn w": "Gallery Pl-Chinatown",
+            "greensboro": "Greensboro",
+            "grosvenor": "Grosvenor-Strathmore",
+            "herndon": "Herndon",
+            "huntington n": "Huntington",
+            "huntington s": "Huntington",
+            "innovation center": "Innovation Center",
+            "judiciary sq w": "Judiciary Square",
+            "l'enfant plaza w": "L'Enfant Plaza",
+            "l'enfant plza": "L'Enfant Plaza",
+            "l'enfant plza e": "L'Enfant Plaza",
+            "l'enfant plza n": "L'Enfant Plaza",
+            "l'enfant plza s": "L'Enfant Plaza",
+            "l'enfant plza w": "L'Enfant Plaza",
+            "largo town center": "Downtown Largo",
+            "lenfant plaza": "L'Enfant Plaza",
+            "mclean": "McLean",
+            "mcpherson sq e": "McPherson Square",
+            "medical center": "Medical Center",
+            "metro center e": "Metro Center",
+            "metro center n": "Metro Center",
+            "metro center s": "Metro Center",
+            "metro center w": "Metro Center",
+            "morgan boulevard": "Morgan Boulevard",
+            "mt vern sq-udc": "Mt Vernon Sq 7th St-Convention Center",
+            "n bethesda": "North Bethesda",
+            "nat airport n": "Ronald Reagan Washington National Airport",
+            "nat airport s": "Ronald Reagan Washington National Airport",
+            "navy yard e": "Navy Yard-Ballpark",
+            "navy yard w": "Navy Yard-Ballpark",
+            "noma gallaudet north": "NoMa-Gallaudet U",
+            "noma gallaudet south": "NoMa-Gallaudet U",
+            "potomac ave": "Potomac Ave",
+            "prince georges plaza": "Hyattsville Crossing",
+            "reston town center": "Reston Town Center",
+            "rhode island ave": "Rhode Island Ave-Brentwood",
+            "shaw-hwrd u n": "Shaw-Howard U",
+            "shaw-hwrd u s": "Shaw-Howard U",
+            "silver spring n": "Silver Spring",
+            "silver spring s": "Silver Spring",
+            "smithsonian n": "Smithsonian",
+            "smithsonian s": "Smithsonian",
+            "spring hill": "Spring Hill",
+            "stadium-armory": "Stadium-Armory",
+            "tysons corner": "Tysons",
+            "u st-cardozo e": "U Street/African-Amer Civil War Memorial/Cardozo",
+            "u st-cardozo w": "U Street/African-Amer Civil War Memorial/Cardozo",
+            "u street-cardozo": "U Street/African-Amer Civil War Memorial/Cardozo",
+            "udc-van ness": "Van Ness-UDC",
+            "union stn e": "Union Station",
+            "union stn n": "Union Station",
+            "union stn s": "Union Station",
+            "union stn w": "Union Station",
+            "vienna/fairfax-gmu": "Vienna/Fairfax-GMU",
+            "virginia sq-gmu": "Virginia Square-GMU",
+            "w hyattsville": "West Hyattsville",
+            "washington dulles international airport": "Washington Dulles International Airport",
+            "west falls church-vt/uva": "West Falls Church",
+            "white flint": "North Bethesda",
+            "wiehle-reston east": "Wiehle-Reston East",
+            "woodley park-zoo": "Woodley Park-Zoo/Adams Morgan"
+        };
+
+        if (overrides[cleanName]) {
+            return stationsData.find(s => s.Name === overrides[cleanName]);
+        }
+
+        stationErrors.add(`Station not found: ${name}`);
+        return null;
+    }
+
+    function displayErrors() {
+        const errorSection = document.getElementById('error-section');
+        const errorList = document.getElementById('error-list');
+
+        if (stationErrors.size > 0) {
+            errorList.innerHTML = '';
+            stationErrors.forEach(err => {
+                const li = document.createElement('li');
+                li.textContent = err;
+                errorList.appendChild(li);
+            });
+            errorSection.classList.remove('hidden');
+        } else {
+            errorSection.classList.add('hidden');
+        }
+    }
+
+    function checkPeak(date) {
+        const day = date.getDay(); // 0 = Sun, 6 = Sat
+        if (day === 0 || day === 6) return false; // Weekend is off-peak
+
+        const hour = date.getHours();
+        const min = date.getMinutes();
+        const time = hour + min / 60;
+
+        // Peak: 5:00 - 9:30 (5.0 - 9.5)
+        // Peak: 15:00 - 19:00 (15.0 - 19.0)
+        if ((time >= 5 && time < 9.5) || (time >= 15 && time < 19)) {
+            return true;
+        }
+        return false;
+    }
+
+    function parseCSV(text) {
+        const lines = text.split('\n');
+        const trips = [];
+
+        // Headers: Seq. #,Time,Description,Operator,Entry Location/ Bus Route,Exit Location,Product,Rem. Rides,Change (+/-),Balance
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            // Regex to split by comma, ignoring commas in quotes
+            const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+
+            // Skip header
+            if (columns[0] === 'Seq. #' || columns[0].includes('Seq')) continue;
+
+            // Ensure enough columns (at least 9 for Change (+/-))
+            if (columns.length < 9) continue;
+
+            const time = columns[1];
+            const description = columns[2];
+            const operator = columns[3];
+            const entryLoc = columns[4]; // Entry Location/ Bus Route
+            const exitLoc = columns[5];  // Exit Location (Wait, header says Exit Location is col 5? Let's check)
+            // Header: Seq. #,Time,Description,Operator,Entry Location/ Bus Route,Exit Location,Product...
+            // 0: Seq, 1: Time, 2: Desc, 3: Op, 4: Entry, 5: Exit, 6: Product
+
+            const product = columns[6] || "";
+            const changeStr = columns[8];
+
+            // Parse Cost
+            let cost = 0;
+            if (changeStr) {
+                const cleanChange = changeStr.replace(/[$,()]/g, ''); // Remove $ , and ()
+                const val = parseFloat(cleanChange);
+
+                // In the CSV, negative numbers are often in parens like ($3.15) or just negative
+                // We stripped parens, so check if original had parens or minus sign
+                const isNegative = changeStr.includes('(') || changeStr.includes('-');
+
+                if (isNegative && val > 0) {
+                    cost = val;
+                } else if (!isNegative && val === 0) {
+                    cost = 0;
+                } else {
+                    // Positive value, likely reload or error correction
+                    // But wait, sometimes 0.00 is a ride with a pass.
+                    // If it's a ride (Entry/Exit) and cost is 0, it's 0.
+                }
+            }
+
+            // Filter for rides
+            // Logic:
+            // If Metrorail: Count 'Exit' rows.
+            // If Metrobus: Count 'Entry' rows.
+
+            let isRide = false;
+            if (operator === 'Metrorail' && description === 'Exit') {
+                isRide = true;
+            } else if (operator === 'Metrobus' && description === 'Entry') {
+                isRide = true;
+            }
+
+            if (isRide) {
+                trips.push({
+                    date: time,
+                    operator: operator,
+                    entry: entryLoc,
+                    exit: exitLoc,
+                    cost: cost,
+                    product: product,
+                    isPassTrip: (cost === 0 && product.toLowerCase().includes('pass'))
+                });
+            }
+        }
+        return trips;
+    }
+
+    function detectPassFromTrips(trips) {
+        // Look for "Monthly Unlimited Pass $X.XX Price Point" in product column
+        // If we find mixed signals, we might need a heuristic (e.g. most frequent)
+        // But usually a file is for a month.
+
+        // Note: The new file has "Monthly Unlimited Pass $4.50 Price Point" in the first line (Sale),
+        // but then "Stored Value" for the rides.
+        // Wait, the new file `Card_Usage...11.01.25-11.30.25.csv` (No Pass) has:
+        // Line 2: "Monthly Unlimited Pass $4.50 Price Point" on a "Sale" transaction?
+        // Ah, line 2 says: "Sale, WMATA POS... Monthly Unlimited Pass $4.50 Price Point"
+        // Does this mean they BOUGHT a pass?
+        // But the rides (lines 3-39) say "Stored Value" and have costs like ($3.15).
+        // If they bought a pass on 11/25 (Line 2), then previous trips were Stored Value.
+        // This is tricky. A user might buy a pass in the middle of the month.
+        // However, the user said "It should also support users not having a pass, see the ... file for an example".
+        // The example file shows "Stored Value" for almost all trips.
+        // The one line with "Monthly Unlimited Pass" is a "Sale".
+
+        // We should look at the TRIPS (isRide=true).
+        // If the trips use "Stored Value", they are not using a pass for those trips.
+        // If the trips use "Monthly Unlimited Pass...", they are.
+
+        // Let's count pass trips vs stored value trips.
+        let passTrips = 0;
+        let storedValueTrips = 0;
+        let detectedPrice = 0;
+
+        for (const trip of trips) {
+            if (trip.product && trip.product.includes('Monthly Unlimited Pass')) {
+                passTrips++;
+                const match = trip.product.match(/\$(\d+\.\d{2})/);
+                if (match) {
+                    detectedPrice = parseFloat(match[1]);
+                }
+            } else {
+                storedValueTrips++;
+            }
+        }
+
+        // If majority are pass trips, assume pass.
+        // Or if we found a pass price on a trip, use it.
+        if (passTrips > 0 && detectedPrice > 0) {
+            return detectedPrice;
+        }
+
+        return null;
+    }
+
+    function calculateAndDisplayResults(trips) {
+        const currentPassLevel = detectedPassLevel;
+        const currentPassValue = currentPassLevel > 0 ? 'pass' : 'none';
+
+        // 1. Calculate actual spend (Pay As You Go)
+        // If we estimated fares, this is the "Projected Pay As You Go" cost
+        const payAsYouGoTotal = trips.reduce((sum, trip) => sum + trip.cost, 0);
+
+        // 2. Calculate optimal pass
+        const passLevels = [
+            2.25, 2.50, 2.75, 3.00, 3.25, 3.50, 3.75, 4.00,
+            4.25, 4.50, 4.75, 5.00, 5.25, 5.50, 5.75, 6.00,
+            6.25, 6.50, 6.75
+        ];
+
+        let bestOption = {
+            type: 'none',
+            level: 0,
+            totalCost: payAsYouGoTotal
+        };
+
+        // Check each pass level
+        passLevels.forEach(level => {
+            const passCost = level * 32; // Monthly pass price
+            let surcharges = 0;
+
+            trips.forEach(trip => {
+                // If trip cost > pass level, you pay the difference
+                if (trip.cost > level) {
+                    surcharges += (trip.cost - level);
+                }
+            });
+
+            const totalScenarioCost = passCost + surcharges;
+
+            if (totalScenarioCost < bestOption.totalCost) {
+                bestOption = {
+                    type: 'pass',
+                    level: level,
+                    totalCost: totalScenarioCost
+                };
+            }
+        });
+
+        // 3. Determine Scenario and Message
+        let scenario = 0;
+        let message = "";
+        let badgeClass = "neutral";
+        let badgeText = "Info";
+
+        // Logic for 6 scenarios
+        if (currentPassValue === 'none') {
+            if (bestOption.type === 'none') {
+                // 1. Customer doesn't have a pass, doesn't need one
+                scenario = 1;
+                message = "You are already saving the most by paying as you go. No pass needed.";
+                badgeClass = "success";
+                badgeText = "Keep As Is";
+            } else {
+                // 2. Customer doesn't have a pass, needs one
+                scenario = 2;
+                message = `You should buy the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong>.`;
+                badgeClass = "warning";
+                badgeText = "Buy Pass";
+            }
+        } else {
+            // Customer has a pass
+            if (bestOption.type === 'none') {
+                // 3. Customer has a pass, doesn't need one
+                scenario = 3;
+                message = "You are overspending on your pass. You should switch to <strong>Pay As You Go</strong>.";
+                badgeClass = "warning";
+                badgeText = "Cancel Pass";
+            } else {
+                // Customer has a pass, and needs a pass (maybe different one)
+                if (bestOption.level < currentPassLevel) {
+                    // 4. Customer has a pass, needs a cheaper one
+                    scenario = 4;
+                    message = `You can save money by downgrading to the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong>.`;
+                    badgeClass = "warning";
+                    badgeText = "Downgrade";
+                } else if (bestOption.level === currentPassLevel) {
+                    // 5. Customer has a pass, has the right one
+                    scenario = 5;
+                    message = "Perfect! You have the correct pass for your usage.";
+                    badgeClass = "success";
+                    badgeText = "Keep As Is";
+                } else {
+                    // 6. Customer has a pass, needs a more expensive one
+                    scenario = 6;
+                    message = `You would actually save money by upgrading to the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong> to avoid surcharges.`;
+                    badgeClass = "warning";
+                    badgeText = "Upgrade";
+                }
+            }
+        }
+
+        // 4. Update UI
+        resultsSection.classList.remove('hidden');
+
+        // Calculate savings
+        let currentScenarioCost = 0;
+        if (currentPassValue === 'none') {
+            currentScenarioCost = payAsYouGoTotal;
+        } else {
+            const currentPassCost = currentPassLevel * 32;
+            let currentSurcharges = 0;
+            trips.forEach(trip => {
+                if (trip.cost > currentPassLevel) {
+                    currentSurcharges += (trip.cost - currentPassLevel);
+                }
+            });
+            currentScenarioCost = currentPassCost + currentSurcharges;
+        }
+
+        const savings = currentScenarioCost - bestOption.totalCost;
+
+        document.getElementById('main-message').innerHTML = message;
+        document.getElementById('recommendation-badge').className = `badge ${badgeClass}`;
+        document.getElementById('recommendation-badge').textContent = badgeText;
+
+        document.getElementById('actual-spend').textContent = `$${currentScenarioCost.toFixed(2)}`;
+        document.getElementById('optimal-cost').textContent = `$${bestOption.totalCost.toFixed(2)}`;
+        document.getElementById('savings').textContent = `$${savings.toFixed(2)}`;
+
+        document.getElementById('details-text').innerHTML = `
+            Based on ${trips.length} trips found in your CSV.<br>
+            Pay-As-You-Go Total: $${payAsYouGoTotal.toFixed(2)}<br>
+            Best Option: ${bestOption.type === 'none' ? 'Pay As You Go' : '$' + bestOption.level.toFixed(2) + ' Pass'}
+        `;
+
+        // Scroll to results
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+});

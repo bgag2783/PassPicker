@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMATA Pass Picker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>WMATA Pass Picker</h1>
+            <p class="subtitle">Optimize your commute. Save money.</p>
+        </header>
+
+        <main>
+            <section class="card input-section">
+                <div class="form-group" id="pass-display-area" style="display: none;">
+                    <label>Current Pass Status</label>
+                    <div id="detected-pass-display" class="pass-display-box">
+                        Detecting...
+                    </div>
+                </div>
+
+                <div class="upload-area" id="drop-zone">
+                    <input type="file" id="csv-file" accept=".csv" hidden>
+                    <div class="icon">📂</div>
+                    <p>Drag & drop your SmarTrip CSV here</p>
+                    <button class="btn-secondary" onclick="document.getElementById('csv-file').click()">Or Browse
+                        Files</button>
+                    <p class="small-text">Export your history from the SmarTrip website.</p>
+                </div>
+            </section>
+
+            <section id="error-section" class="card error-section hidden" style="border-left: 4px solid #ff4444;">
+                <div class="result-header">
+                    <h2>Station Errors</h2>
+                    <div class="badge warning">Check Data</div>
+                </div>
+                <p>The following stations or fares could not be identified. They have been skipped or estimated.</p>
+                <ul id="error-list" style="margin-top: 10px; color: #d32f2f; font-family: monospace;"></ul>
+            </section>
+
+            <section id="estimation-section" class="card estimation-section hidden">
+                <div class="result-header">
+                    <h2>Missing Fare Data</h2>
+                    <div class="badge warning">Action Required</div>
+                </div>
+                <p>We detected trips covered by an existing pass (showing $0.00 cost). To calculate your potential
+                    savings, we need to estimate what these trips would have cost.</p>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="estimated-fare">Estimated Average One-Way Fare</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="number" id="estimated-fare" value="4.00" step="0.05" min="2.00" max="6.75"
+                            style="padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); width: 120px; font-size: 1rem;">
+                        <span class="small-text">($2.25 - $6.75)</span>
+                    </div>
+                    <p class="small-text" style="margin-top: 8px;">Tip: Check the <a
+                            href="https://www.wmata.com/rider-guide/stations/" target="_blank">WMATA Trip Planner</a>
+                        for exact fares.</p>
+                </div>
+                <button id="calculate-btn" class="btn-primary">Calculate Savings</button>
+            </section>
+
+            <section id="results-section" class="card results-section hidden">
+                <div class="result-header">
+                    <h2>Recommendation</h2>
+                    <div id="recommendation-badge" class="badge">Checking...</div>
+                </div>
+
+                <div class="result-content">
+                    <p id="main-message" class="main-message"></p>
+
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="label">Your Actual Spend</span>
+                            <span class="value" id="actual-spend">$0.00</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Optimal Cost</span>
+                            <span class="value" id="optimal-cost">$0.00</span>
+                        </div>
+                        <div class="stat-item highlight">
+                            <span class="label">Potential Savings</span>
+                            <span class="value" id="savings">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="details">
+                        <h3>Analysis Details</h3>
+                        <p id="details-text"></p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Not affiliated with WMATA. Pricing based on November 2025 rates.</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
