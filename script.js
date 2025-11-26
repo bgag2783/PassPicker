@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let detectedPassLevel = 0; // 0 means no pass
     let stationsData = [];
     let faresData = [];
+    let stationOverrides = {};
     let stationErrors = new Set();
 
     // Load reference data
@@ -24,6 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(r => r.json())
         .then(data => faresData = data)
         .catch(e => console.warn("Could not load fares.json", e));
+
+    fetch('station_overrides.json')
+        .then(r => r.json())
+        .then(data => stationOverrides = data)
+        .catch(e => console.warn("Could not load station_overrides.json", e));
 
     // Drag and Drop Handlers
     dropZone.addEventListener('dragover', (e) => {
@@ -92,8 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Auto-detect pass from trips (using most frequent or max?)
             // For multi-month, we might detect different passes. 
             // Let's just detect if *any* pass was used.
-            const detectedPass = detectPassFromTrips(allTrips);
-            detectedPassLevel = detectedPass || 0;
+            const detectedPasses = detectPassFromTrips(allTrips);
+            // detectedPassLevel is no longer a single number, but we might need it for legacy or just remove it.
+            // Let's store the map or just use it for display.
+            const hasPass = Object.keys(detectedPasses).length > 0;
 
             // Calculate Date Range
             const dates = allTrips.map(t => new Date(t.date));
@@ -104,16 +112,27 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update Display
             passDisplayArea.style.display = 'block';
 
+            const fileCount = fileList.length;
+            const fileLabel = fileCount === 1 ? 'file' : 'files';
+
             let passInfoHtml = '';
-            if (detectedPass) {
-                passInfoHtml = `<span class="badge success">Auto-detected</span> $${detectedPass.toFixed(2)} Monthly Pass`;
+            const passCount = Object.keys(detectedPasses).length;
+
+            if (passCount > 0) {
+                if (passCount === 1) {
+                    // Show specific pass if only one found
+                    const price = Object.values(detectedPasses)[0];
+                    passInfoHtml = `<span class="badge success">Auto-detected</span> $${price.toFixed(2)} Monthly Pass`;
+                } else {
+                    passInfoHtml = `<span class="badge success">Auto-detected</span> ${passCount} Passes Found`;
+                }
             } else {
                 passInfoHtml = `<span class="badge neutral">Auto-detected</span> No Active Pass (Pay As You Go)`;
             }
 
             detectedPassDisplay.innerHTML = `
                 <div style="margin-bottom: 8px; font-size: 0.9em; color: #666;">
-                    ${dateRangeStr} • ${fileList.length} file(s)
+                    ${dateRangeStr} • ${fileCount} ${fileLabel}
                 </div>
                 ${passInfoHtml}
             `;
@@ -247,100 +266,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Simple heuristic: match if API name contains CSV name parts or vice versa
         // Or specific overrides
-        const overrides = {
-            "addison road": "Addison Road-Seat Pleasant",
-            "arch-navy mem": "Archives-Navy Memorial-Penn Quarter",
-            "archives-navy mem'l": "Archives-Navy Memorial-Penn Quarter",
-            "ballston": "Ballston-MU",
-            "ballston-mu": "Ballston-MU",
-            "benning road": "Benning Road",
-            "brookland": "Brookland-CUA",
-            "capitol heights": "Capitol Heights",
-            "capitol s": "Capitol South",
-            "columbia hgts": "Columbia Heights",
-            "downtown largo": "Downtown Largo",
-            "dulles airport": "Washington Dulles International Airport",
-            "dunn loring-merrifield": "Dunn Loring-Merrifield",
-            "dupont circle n": "Dupont Circle",
-            "dupont circle s": "Dupont Circle",
-            "east falls church": "East Falls Church",
-            "farragut n nw": "Farragut North",
-            "farragut north": "Farragut North",
-            "farragut west": "Farragut West",
-            "fed center sw": "Federal Center SW",
-            "fed triangle": "Federal Triangle",
-            "foggy bottom": "Foggy Bottom-GWU",
-            "frndshp hgts n": "Friendship Heights",
-            "gal pl-chntwn n": "Gallery Pl-Chinatown",
-            "gal pl-chntwn s": "Gallery Pl-Chinatown",
-            "gal plc-chntn e": "Gallery Pl-Chinatown",
-            "gal plc-chntn n": "Gallery Pl-Chinatown",
-            "gal plc-chntn s": "Gallery Pl-Chinatown",
-            "gal plc-chntn w": "Gallery Pl-Chinatown",
-            "greensboro": "Greensboro",
-            "grosvenor": "Grosvenor-Strathmore",
-            "herndon": "Herndon",
-            "huntington n": "Huntington",
-            "huntington s": "Huntington",
-            "innovation center": "Innovation Center",
-            "judiciary sq w": "Judiciary Square",
-            "l'enfant plaza w": "L'Enfant Plaza",
-            "l'enfant plza": "L'Enfant Plaza",
-            "l'enfant plza e": "L'Enfant Plaza",
-            "l'enfant plza n": "L'Enfant Plaza",
-            "l'enfant plza s": "L'Enfant Plaza",
-            "l'enfant plza w": "L'Enfant Plaza",
-            "largo town center": "Downtown Largo",
-            "lenfant plaza": "L'Enfant Plaza",
-            "mclean": "McLean",
-            "mcpherson sq e": "McPherson Square",
-            "medical center": "Medical Center",
-            "metro center e": "Metro Center",
-            "metro center n": "Metro Center",
-            "metro center s": "Metro Center",
-            "metro center w": "Metro Center",
-            "morgan boulevard": "Morgan Boulevard",
-            "mt vern sq-udc": "Mt Vernon Sq 7th St-Convention Center",
-            "n bethesda": "North Bethesda",
-            "nat airport n": "Ronald Reagan Washington National Airport",
-            "nat airport s": "Ronald Reagan Washington National Airport",
-            "navy yard e": "Navy Yard-Ballpark",
-            "navy yard w": "Navy Yard-Ballpark",
-            "noma gallaudet north": "NoMa-Gallaudet U",
-            "noma gallaudet south": "NoMa-Gallaudet U",
-            "potomac ave": "Potomac Ave",
-            "prince georges plaza": "Hyattsville Crossing",
-            "reston town center": "Reston Town Center",
-            "rhode island ave": "Rhode Island Ave-Brentwood",
-            "shaw-hwrd u n": "Shaw-Howard U",
-            "shaw-hwrd u s": "Shaw-Howard U",
-            "silver spring n": "Silver Spring",
-            "silver spring s": "Silver Spring",
-            "smithsonian n": "Smithsonian",
-            "smithsonian s": "Smithsonian",
-            "spring hill": "Spring Hill",
-            "stadium-armory": "Stadium-Armory",
-            "tysons corner": "Tysons",
-            "u st-cardozo e": "U Street/African-Amer Civil War Memorial/Cardozo",
-            "u st-cardozo w": "U Street/African-Amer Civil War Memorial/Cardozo",
-            "u street-cardozo": "U Street/African-Amer Civil War Memorial/Cardozo",
-            "udc-van ness": "Van Ness-UDC",
-            "union stn e": "Union Station",
-            "union stn n": "Union Station",
-            "union stn s": "Union Station",
-            "union stn w": "Union Station",
-            "vienna/fairfax-gmu": "Vienna/Fairfax-GMU",
-            "virginia sq-gmu": "Virginia Square-GMU",
-            "w hyattsville": "West Hyattsville",
-            "washington dulles international airport": "Washington Dulles International Airport",
-            "west falls church-vt/uva": "West Falls Church",
-            "white flint": "North Bethesda",
-            "wiehle-reston east": "Wiehle-Reston East",
-            "woodley park-zoo": "Woodley Park-Zoo/Adams Morgan"
-        };
+        // Simple heuristic: match if API name contains CSV name parts or vice versa
+        // Or specific overrides
 
-        if (overrides[cleanName]) {
-            return stationsData.find(s => s.Name === overrides[cleanName]);
+        if (stationOverrides[cleanName]) {
+            return stationsData.find(s => s.Name === stationOverrides[cleanName]);
         }
 
         stationErrors.add(`Station not found: ${name}`);
@@ -358,6 +288,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.textContent = err;
                 errorList.appendChild(li);
             });
+
+            // Add help text
+            const helpText = document.createElement('p');
+            helpText.style.marginTop = '12px';
+            helpText.style.fontSize = '0.9rem';
+            helpText.innerHTML = 'If you see a station error, please <a href="https://github.com/bgag2783/PassPicker/issues" target="_blank">submit an issue on GitHub</a> with your CSV file so we can fix it.';
+            errorList.appendChild(helpText);
+
             errorSection.classList.remove('hidden');
         } else {
             errorSection.classList.add('hidden');
@@ -437,6 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // If Metrobus: Count 'Entry' rows.
 
             let isRide = false;
+
             if (operator === 'Metrorail' && description === 'Exit') {
                 isRide = true;
             } else if (operator === 'Metrobus' && description === 'Entry') {
@@ -459,63 +398,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function detectPassFromTrips(trips) {
-        // Look for "Monthly Unlimited Pass $X.XX Price Point" in product column
-        // If we find mixed signals, we might need a heuristic (e.g. most frequent)
-        // But usually a file is for a month.
+        // Returns a map of "YYYY-M" -> passPrice
+        const monthlyPasses = {};
 
-        // Note: The new file has "Monthly Unlimited Pass $4.50 Price Point" in the first line (Sale),
-        // but then "Stored Value" for the rides.
-        // Wait, the new file `Card_Usage...11.01.25-11.30.25.csv` (No Pass) has:
-        // Line 2: "Monthly Unlimited Pass $4.50 Price Point" on a "Sale" transaction?
-        // Ah, line 2 says: "Sale, WMATA POS... Monthly Unlimited Pass $4.50 Price Point"
-        // Does this mean they BOUGHT a pass?
-        // But the rides (lines 3-39) say "Stored Value" and have costs like ($3.15).
-        // If they bought a pass on 11/25 (Line 2), then previous trips were Stored Value.
-        // This is tricky. A user might buy a pass in the middle of the month.
-        // However, the user said "It should also support users not having a pass, see the ... file for an example".
-        // The example file shows "Stored Value" for almost all trips.
-        // The one line with "Monthly Unlimited Pass" is a "Sale".
-
-        // We should look at the TRIPS (isRide=true).
-        // If the trips use "Stored Value", they are not using a pass for those trips.
-        // If the trips use "Monthly Unlimited Pass...", they are.
-
-        // Let's count pass trips vs stored value trips.
-        let passTrips = 0;
-        let storedValueTrips = 0;
-        let detectedPrice = 0;
-
-        for (const trip of trips) {
+        trips.forEach(trip => {
+            // Check if this trip used a pass
             if (trip.product && trip.product.includes('Monthly Unlimited Pass')) {
-                passTrips++;
                 const match = trip.product.match(/\$(\d+\.\d{2})/);
                 if (match) {
-                    detectedPrice = parseFloat(match[1]);
+                    const price = parseFloat(match[1]);
+                    const date = new Date(trip.date);
+                    // Key by month of usage
+                    const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+
+                    // Store/Overwrite (assuming same pass for whole month)
+                    monthlyPasses[key] = price;
                 }
-            } else {
-                storedValueTrips++;
             }
-        }
+        });
 
-        // If majority are pass trips, assume pass.
-        // Or if we found a pass price on a trip, use it.
-        if (passTrips > 0 && detectedPrice > 0) {
-            return detectedPrice;
-        }
-
-        return null;
+        return monthlyPasses;
     }
 
     function calculateAndDisplayResults(trips) {
-        const currentPassLevel = detectedPassLevel;
-        const currentPassValue = currentPassLevel > 0 ? 'pass' : 'none';
+        // trips contains only rides now (parseCSV reverted)
+        const rideTrips = trips;
 
-        // 1. Calculate actual spend (Pay As You Go)
-        const payAsYouGoTotal = trips.reduce((sum, trip) => sum + trip.cost, 0);
+        // Detect passes per month
+        const detectedPasses = detectPassFromTrips(trips);
+        const hasAnyPass = Object.keys(detectedPasses).length > 0;
+
+        // 1. Calculate actual spend (Pay As You Go + Inferred Pass Costs)
+        let actualRideSpend = 0;
+        rideTrips.forEach(t => {
+            // Sum all ride costs (surcharges or PAYG)
+            // If it was a pass trip (isPassTrip=true), the actual cost was 0 (covered by pass).
+            // We only add cost if it wasn't fully covered (surcharge) or no pass.
+            if (!t.isPassTrip) {
+                actualRideSpend += t.cost;
+            }
+        });
+
+        // Add inferred pass costs for months where a pass was detected
+        // Pass Price (e.g. 2.25) is the level. Cost is Level * 32.
+        const actualPassSpend = Object.values(detectedPasses).reduce((sum, level) => sum + (level * 32), 0);
+        const totalActualSpend = actualRideSpend + actualPassSpend;
+
+        // Pay As You Go Scenario (No Pass)
+        // This is Sum(Full Fare for ALL rides).
+        // `rideTrips` has resolved fares for pass trips.
+        const payAsYouGoTotal = rideTrips.reduce((sum, t) => sum + t.cost, 0);
 
         // 2. Group trips by month
         const tripsByMonth = {};
-        trips.forEach(trip => {
+        rideTrips.forEach(trip => {
             if (trip.date) {
                 const d = new Date(trip.date);
                 const key = `${d.getFullYear()}-${d.getMonth() + 1}`; // YYYY-M
@@ -541,14 +477,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Check each pass level
         passLevels.forEach(level => {
-            // For this pass level, calculate total cost across all months
-            // Total Cost = (Pass Price * Months) + Sum(Surcharges)
-
-            // Note: If a month has NO trips, we shouldn't buy a pass for it?
-            // The user said "easier for most users to just get one pass and keep renewing that one".
-            // But if they didn't use it at all in a month, they probably wouldn't renew?
-            // Let's assume they buy it for every month they have data for.
-
             const monthlyPassPrice = level * 32;
             let totalScenarioCost = 0;
 
@@ -572,12 +500,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 4. Determine Scenario and Message
-        let scenario = 0;
         let message = "";
         let badgeClass = "neutral";
         let badgeText = "Info";
 
-        if (currentPassValue === 'none') {
+        if (!hasAnyPass) {
             if (bestOption.type === 'none') {
                 message = "You are already saving the most by paying as you go. No pass needed.";
                 badgeClass = "success";
@@ -588,23 +515,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 badgeText = "Buy Pass";
             }
         } else {
+            // User has a pass (or passes)
+            // Compare Total Actual Spend vs Best Option
+            const savings = totalActualSpend - bestOption.totalCost;
+
             if (bestOption.type === 'none') {
                 message = "You are overspending on your pass. You should switch to <strong>Pay As You Go</strong>.";
                 badgeClass = "warning";
                 badgeText = "Cancel Pass";
             } else {
-                if (bestOption.level < currentPassLevel) {
-                    message = `You can save money by downgrading to the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong>.`;
+                // Determine if they should upgrade/downgrade/stay
+                // This is tricky if they have different passes in different months.
+                // Let's just compare the *recommended* level to their *most recent* or *average* pass?
+                // Or just generic "Switch to X".
+
+                // Let's find the most common pass level they bought?
+                // Or just say "Switch to $X".
+
+                if (savings > 1.00) { // Threshold for "Save Money"
+                    message = `You can save money by switching to the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong>.`;
                     badgeClass = "warning";
-                    badgeText = "Downgrade";
-                } else if (bestOption.level === currentPassLevel) {
-                    message = "Perfect! You have the correct pass for your usage.";
+                    badgeText = "Switch Pass";
+                } else {
+                    message = "Perfect! You are using the optimal strategy.";
                     badgeClass = "success";
                     badgeText = "Keep As Is";
-                } else {
-                    message = `You would actually save money by upgrading to the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong> to avoid surcharges.`;
-                    badgeClass = "warning";
-                    badgeText = "Upgrade";
                 }
             }
         }
@@ -612,48 +547,33 @@ document.addEventListener('DOMContentLoaded', () => {
         // 5. Update UI
         resultsSection.classList.remove('hidden');
 
-        // Calculate savings
-        let currentScenarioCost = 0;
-        if (currentPassValue === 'none') {
-            currentScenarioCost = payAsYouGoTotal;
-        } else {
-            // Current pass cost across all months
-            const currentPassMonthlyPrice = currentPassLevel * 32;
-            Object.values(tripsByMonth).forEach(monthTrips => {
-                let monthSurcharges = 0;
-                monthTrips.forEach(trip => {
-                    if (trip.cost > currentPassLevel) {
-                        monthSurcharges += (trip.cost - currentPassLevel);
-                    }
-                });
-                currentScenarioCost += (currentPassMonthlyPrice + monthSurcharges);
-            });
-        }
-
-        const savings = currentScenarioCost - bestOption.totalCost;
+        const savings = totalActualSpend - bestOption.totalCost;
 
         document.getElementById('main-message').innerHTML = message;
         document.getElementById('recommendation-badge').className = `badge ${badgeClass}`;
         document.getElementById('recommendation-badge').textContent = badgeText;
 
-        document.getElementById('actual-spend').textContent = `$${currentScenarioCost.toFixed(2)}`;
+        document.getElementById('actual-spend').textContent = `$${totalActualSpend.toFixed(2)}`;
         document.getElementById('optimal-cost').textContent = `$${bestOption.totalCost.toFixed(2)}`;
-        document.getElementById('savings').textContent = `$${savings.toFixed(2)}`;
+        document.getElementById('savings').textContent = `$${Math.max(0, savings).toFixed(2)}`;
+
+        const monthLabel = activeMonthsCount === 1 ? 'month' : 'months';
 
         document.getElementById('details-text').innerHTML = `
-            Based on ${trips.length} trips over ${activeMonthsCount} month(s).<br>
+            Based on ${rideTrips.length} trips over ${activeMonthsCount} ${monthLabel}.<br>
             Pay-As-You-Go Total: $${payAsYouGoTotal.toFixed(2)}<br>
             Best Option: ${bestOption.type === 'none' ? 'Pay As You Go' : '$' + bestOption.level.toFixed(2) + ' Pass'}
         `;
 
         // Render Table
-        renderTripTable(trips, bestOption);
+        // We need to pass the detected pass level for "Your Cost" column.
+        // Since it varies by month, we should pass the map.
+        renderTripTable(rideTrips, bestOption, detectedPasses);
 
         // Setup Toggle
         const btn = document.getElementById('view-details-btn');
         const container = document.getElementById('details-table-container');
 
-        // Remove old listener to avoid duplicates if re-run
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
 
@@ -662,17 +582,13 @@ document.addEventListener('DOMContentLoaded', () => {
             newBtn.textContent = container.classList.contains('hidden') ? 'View Trip Details' : 'Hide Trip Details';
         });
 
-        // Scroll to results
         resultsSection.scrollIntoView({ behavior: 'smooth' });
 
-        // 5. Calculate Analytics
-        calculateAnalytics(trips);
-
-        // 6. Render Map
-        renderMap(trips);
+        calculateAnalytics(rideTrips);
+        renderMap(rideTrips);
     }
 
-    function renderTripTable(trips, bestOption) {
+    function renderTripTable(trips, bestOption, detectedPasses) {
         const tbody = document.querySelector('#trip-details-table tbody');
         tbody.innerHTML = '';
 
@@ -680,50 +596,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const sortedTrips = [...trips].sort((a, b) => new Date(b.date) - new Date(a.date));
 
         sortedTrips.forEach(trip => {
+            const d = new Date(trip.date);
+            const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+            const monthPassPrice = detectedPasses[key];
+
             // Determine "Your Cost" (Current)
-            // If it was a pass trip, cost was 0. If PAYG, cost was trip.cost.
-            // But wait, if we are simulating "Current Plan", we should use the detectedPassLevel logic?
-            // The user wants "Cost with current plan".
-            // If detectedPassLevel > 0, then trips <= level are 0.
-            // If detectedPassLevel == 0, then trips are full fare.
-            // Actually, `trip.cost` ALREADY reflects the cost they paid (or 0 if pass).
-            // So `trip.cost` is "Your Cost".
+            // If they had a pass for this month, cost is max(0, trip.cost - passLevel)
+            // If no pass, cost is trip.cost
+            let yourCost = 0;
+            if (monthPassPrice) {
+                // passPrice is e.g. 4.50. Pass Level is price / 32? No, price IS the level?
+                // Wait, detectedPassFromTrips returns the PRICE (e.g. 4.50).
+                // The pass covers trips up to that price.
+                // So passLevel = monthPassPrice? No, pass COST is $144 for a $4.50 pass.
+                // The CSV says "Monthly Unlimited Pass $4.50 Price Point".
+                // So the value we extracted IS the level (4.50).
+                yourCost = Math.max(0, trip.cost - monthPassPrice);
+            } else {
+                yourCost = trip.cost;
+            }
 
             // Determine "Optimal Cost" (Suggested)
             let optimalCost = 0;
             if (bestOption.type === 'none') {
-                // PAYG: You pay the full fare
-                // We need the original fare. 
-                // If trip.cost is 0 (pass), we need to know what the fare WOULD have been.
-                // We resolved this in `resolveFares`. So `trip.cost` might be 0, but we might have stored the resolved fare?
-                // Ah, `resolveFares` updates `trip.cost` ONLY if it was 0 and we found a fare.
-                // Wait, if `trip.isPassTrip` was true, `resolveFares` UPDATES `trip.cost` to the fare value!
-                // So `trip.cost` in `trips` array IS the resolved fare value now?
-                // Let's check `resolveFares`.
-                // Yes: `return { ...trip, cost: fare, isEstimated: false };`
-                // So `trip.cost` is the FARE VALUE.
-
-                // So "Your Cost" needs to be calculated based on `detectedPassLevel`.
-                // "Optimal Cost" needs to be calculated based on `bestOption.level`.
-
                 optimalCost = trip.cost; // Full fare
             } else {
                 // Pass: You pay surcharge if fare > pass level
                 optimalCost = Math.max(0, trip.cost - bestOption.level);
             }
 
-            // Re-calculate "Your Cost" for display
-            let yourCost = 0;
-            if (detectedPassLevel > 0) {
-                yourCost = Math.max(0, trip.cost - detectedPassLevel);
-            } else {
-                yourCost = trip.cost;
-            }
-
             const tr = document.createElement('tr');
 
-            // Date/Time Parsing
-            const d = new Date(trip.date);
             const dateStr = d.toLocaleDateString();
             const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
