@@ -907,4 +907,28 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show section
         document.getElementById('analytics-section').classList.remove('hidden');
     }
+
+
+    // Onboarding Modal Logic
+    const modal = document.getElementById('onboarding-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const helpLink = document.getElementById('help-link');
+
+    if (modal && closeModalBtn && helpLink) {
+        // Check if user has visited before
+        if (!localStorage.getItem('hasVisited')) {
+            modal.classList.remove('hidden');
+        }
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            localStorage.setItem('hasVisited', 'true');
+        });
+
+        helpLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+        });
+    }
 });
+
