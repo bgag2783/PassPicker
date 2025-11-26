@@ -610,5 +610,179 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Scroll to results
         resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+        // 5. Calculate Analytics
+        calculateAnalytics(trips);
+
+        // 6. Render Map
+        renderMap(trips);
+    }
+
+    let mapInstance = null;
+
+    function renderMap(trips) {
+        const mapSection = document.getElementById('map-section');
+        mapSection.classList.remove('hidden');
+
+        if (!mapInstance) {
+            mapInstance = L.map('map').setView([38.8977, -77.0365], 11); // Center on DC
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(mapInstance);
+        } else {
+            // Clear existing layers if re-running
+            mapInstance.eachLayer((layer) => {
+                if (layer instanceof L.Marker || layer instanceof L.CircleMarker || layer instanceof L.Polyline) {
+                    mapInstance.removeLayer(layer);
+                }
+            });
+        }
+
+        // Aggregate station visits
+        const stationVisits = {};
+        trips.forEach(t => {
+            if (t.entry) stationVisits[t.entry] = (stationVisits[t.entry] || 0) + 1;
+            if (t.exit) stationVisits[t.exit] = (stationVisits[t.exit] || 0) + 1;
+        });
+
+        // Plot Stations
+        const markers = [];
+        Object.entries(stationVisits).forEach(([name, count]) => {
+            const station = findStation(name);
+            if (station && station.Lat && station.Lon) {
+                // Size marker based on visits (min 5, max 20)
+                const radius = Math.min(20, Math.max(5, count * 1.5));
+
+                const marker = L.circleMarker([station.Lat, station.Lon], {
+                    radius: radius,
+                    fillColor: "#007AFF",
+                    color: "#fff",
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.7
+                }).addTo(mapInstance);
+
+                marker.bindPopup(`<b>${station.Name}</b><br>${count} visits`);
+                markers.push(marker);
+            }
+        });
+
+        // Draw Lines for Trips
+        // To avoid clutter, only draw unique paths with thickness based on frequency
+        const paths = {};
+        trips.forEach(t => {
+            if (t.operator === 'Metrorail' && t.entry && t.exit) {
+                const key = [t.entry, t.exit].sort().join('-'); // Undirected graph
+                paths[key] = (paths[key] || 0) + 1;
+            }
+        });
+
+        Object.entries(paths).forEach(([key, count]) => {
+            const [name1, name2] = key.split('-');
+            const s1 = findStation(name1);
+            const s2 = findStation(name2);
+
+            if (s1 && s2) {
+                const weight = Math.min(5, Math.max(1, count * 0.5));
+                L.polyline([[s1.Lat, s1.Lon], [s2.Lat, s2.Lon]], {
+                    color: '#007AFF',
+                    weight: weight,
+                    opacity: 0.3
+                }).addTo(mapInstance);
+            }
+        });
+
+        // Fit bounds if we have markers
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            mapInstance.fitBounds(group.getBounds().pad(0.1));
+        }
+
+        // Invalidate size after a slight delay to ensure container is visible/sized
+        setTimeout(() => {
+            mapInstance.invalidateSize();
+        }, 100);
+    }
+
+    function calculateAnalytics(trips) {
+        // 1. Top Stations
+        const stationCounts = {};
+        trips.forEach(t => {
+            if (t.entry) {
+                const s = findStation(t.entry);
+                const name = s ? s.Name : t.entry;
+                stationCounts[name] = (stationCounts[name] || 0) + 1;
+            }
+            if (t.exit) {
+                const s = findStation(t.exit);
+                const name = s ? s.Name : t.exit;
+                stationCounts[name] = (stationCounts[name] || 0) + 1;
+            }
+        });
+
+        const sortedStations = Object.entries(stationCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        const maxVisits = sortedStations[0] ? sortedStations[0][1] : 1;
+        const topStationsList = document.getElementById('top-stations-list');
+        topStationsList.innerHTML = '';
+
+        sortedStations.forEach(([name, count]) => {
+            const percentage = (count / maxVisits) * 100;
+            const div = document.createElement('div');
+            div.className = 'station-bar-item';
+            div.innerHTML = `
+                <div class="station-info">
+                    <span>${name}</span>
+                    <span>${count} visits</span>
+                </div>
+                <div class="progress-bg">
+                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                </div>
+            `;
+            topStationsList.appendChild(div);
+        });
+
+        // 2. Peak vs Off-Peak
+        let peakCount = 0;
+        let offPeakCount = 0;
+        trips.forEach(t => {
+            if (t.operator === 'Metrorail' && t.date) {
+                const date = new Date(t.date);
+                if (checkPeak(date)) {
+                    peakCount++;
+                } else {
+                    offPeakCount++;
+                }
+            }
+        });
+
+        const totalRailTrips = peakCount + offPeakCount;
+        const peakPct = totalRailTrips > 0 ? (peakCount / totalRailTrips) * 100 : 0;
+        const offPeakPct = totalRailTrips > 0 ? (offPeakCount / totalRailTrips) * 100 : 0;
+
+        document.getElementById('peak-bar').style.width = `${peakPct}%`;
+        document.getElementById('offpeak-bar').style.width = `${offPeakPct}%`;
+        document.getElementById('peak-count').textContent = peakCount;
+        document.getElementById('offpeak-count').textContent = offPeakCount;
+
+        // 3. Spend Breakdown
+        let railSpend = 0;
+        let busSpend = 0;
+
+        trips.forEach(t => {
+            if (t.operator === 'Metrorail') railSpend += t.cost;
+            else if (t.operator === 'Metrobus') busSpend += t.cost;
+        });
+
+        document.getElementById('rail-spend').textContent = `$${railSpend.toFixed(2)}`;
+        document.getElementById('bus-spend').textContent = `$${busSpend.toFixed(2)}`;
+        document.getElementById('total-spend-analytics').textContent = `$${(railSpend + busSpend).toFixed(2)}`;
+
+        // Show section
+        document.getElementById('analytics-section').classList.remove('hidden');
     }
 });

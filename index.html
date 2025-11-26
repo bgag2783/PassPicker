@@ -9,13 +9,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 
 <body>
     <div class="container">
-        <header>
-            <h1>WMATA Pass Picker</h1>
-            <p class="subtitle">Optimize your commute. Save money.</p>
+        <!-- ... header ... -->
+
+        <h1>WMATA Pass Picker</h1>
+        <p class="subtitle">Optimize your commute. Save money.</p>
         </header>
 
         <main>
@@ -97,6 +102,65 @@
                         <p id="details-text"></p>
                     </div>
                 </div>
+            </section>
+
+            <section id="analytics-section" class="card analytics-section hidden">
+                <div class="result-header">
+                    <h2>Your Travel Stats</h2>
+                    <div class="badge neutral">Insights</div>
+                </div>
+
+                <div class="analytics-grid">
+                    <!-- Top Stations -->
+                    <div class="analytics-card">
+                        <h3>Top Stations</h3>
+                        <div id="top-stations-list" class="bars-container">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Peak vs Off-Peak -->
+                    <div class="analytics-card">
+                        <h3>Trip Timing</h3>
+                        <div class="chart-container">
+                            <div class="pie-chart-simple">
+                                <div id="peak-bar" class="bar-segment peak" style="width: 50%"></div>
+                                <div id="offpeak-bar" class="bar-segment offpeak" style="width: 50%"></div>
+                            </div>
+                            <div class="chart-legend">
+                                <span class="legend-item"><span class="dot peak"></span>Peak (<span
+                                        id="peak-count">0</span>)</span>
+                                <span class="legend-item"><span class="dot offpeak"></span>Off-Peak (<span
+                                        id="offpeak-count">0</span>)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Spend Breakdown -->
+                    <div class="analytics-card">
+                        <h3>Spend Breakdown</h3>
+                        <div class="stat-row">
+                            <span>Rail</span>
+                            <span id="rail-spend" class="stat-value">$0.00</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Bus</span>
+                            <span id="bus-spend" class="stat-value">$0.00</span>
+                        </div>
+                        <div class="stat-row total">
+                            <span>Total</span>
+                            <span id="total-spend-analytics" class="stat-value">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="map-section" class="card map-section hidden">
+                <div class="result-header">
+                    <h2>Trip Map</h2>
+                    <div class="badge neutral">Visualization</div>
+                </div>
+                <div id="map"></div>
             </section>
         </main>
 
