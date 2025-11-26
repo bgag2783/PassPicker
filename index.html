@@ -39,6 +39,26 @@
                     <button class="btn-secondary" onclick="document.getElementById('csv-file').click()">Or Browse
                         Files</button>
                     <p class="small-text">Export your history from the SmarTrip website.</p>
+                    <a href="#" id="help-link"
+                        style="display: block; margin-top: 12px; font-size: 0.9rem; color: var(--primary-color);">How do
+                        I get my data?</a>
+                </div>
+
+                <!-- Onboarding Modal -->
+                <div id="onboarding-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <h2>Welcome to PassPicker!</h2>
+                        <p>To find out if you can save money, you'll need your travel history. Here's how to get it:</p>
+                        <ol style="text-align: left; margin: 20px 0; padding-left: 24px; line-height: 1.6;">
+                            <li>Go to <a href="https://smartrip.wmata.com" target="_blank">smartrip.wmata.com</a> and
+                                sign in.</li>
+                            <li>Select your card.</li>
+                            <li>Click <strong>Use History</strong> in the right sidebar.</li>
+                            <li>Select a <strong>Month</strong> and click <strong>Submit</strong>.</li>
+                            <li>Click <strong>Export To Excel</strong> (CSV) on the right side.</li>
+                        </ol>
+                        <button id="close-modal-btn" class="btn-primary" style="width: 100%;">Got it!</button>
+                    </div>
                 </div>
             </section>
 
