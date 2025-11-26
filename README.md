@@ -5,19 +5,26 @@ A simple, private, and static web application to help Washington D.C. area commu
 ## Features
 
 *   **Privacy First**: All data processing happens locally in your browser. Your travel history is never uploaded to any server.
-*   **Smart Analysis**: Parses your official SmarTrip CSV export to calculate your exact spending.
-*   **Automated Fare Lookup**: Uses official WMATA fare data to calculate costs for trips covered by your existing pass, ensuring accurate savings estimates.
+*   **Smart Analysis**: Parses your official SmarTrip CSV export(s) to calculate your exact spending.
+*   **Multi-File Support**: Upload months of history at once. The app deduplicates trips and optimizes for long-term savings.
+*   **Usage Analytics**: Visualize your top stations, peak vs. off-peak travel habits, and spending breakdown (Rail vs. Bus).
+*   **Interactive Map**: See your travel footprint on a map of the DC area, with markers for visited stations and lines showing your trips.
+*   **Automated Fare Lookup**: Uses official WMATA fare data to calculate costs for trips covered by your existing pass.
 *   **Intelligent Recommendations**: Analyzes 19 different pass levels to recommend the one that saves you the most money.
-*   **Edge Case Handling**: Correctly handles Metrobus transfers, same-station exits, and peak/off-peak pricing.
 
 ## How to Use
 
-1.  **Export your history**: Log in to your [SmarTrip account](https://smartrip.wmata.com/) and export your card usage history as a CSV file.
+1.  **Export your history**: Log in to your [SmarTrip account](https://smartrip.wmata.com/) and export your card usage history as CSV files (e.g., one for each month).
 2.  **Open the App**:
     *   **Local**: Run a local web server (e.g., `python3 -m http.server`) and open `http://localhost:8000`.
     *   **Web**: (Link to your GitHub Pages deployment if applicable)
-3.  **Drag & Drop**: Drag your CSV file onto the page.
-4.  **View Results**: Instantly see your actual spend, optimal pass cost, and potential savings.
+3.  **Drag & Drop**: Drag your CSV file(s) onto the page. You can drop multiple files at once.
+4.  **View Results**: Instantly see your actual spend, optimal pass cost, potential savings, and detailed analytics.
+
+## Privacy & Technology
+
+*   **Zero Data Collection**: No analytics or tracking scripts.
+*   **Map Visualization**: Uses [Leaflet.js](https://leafletjs.com/) with CartoDB tiles. Map tiles are fetched from the internet, but your trip data is overlaid locally and never sent to the map provider.
 
 ## Development
 

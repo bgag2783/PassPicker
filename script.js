@@ -39,11 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         dropZone.classList.remove('dragover');
         const files = e.dataTransfer.files;
-        if (files.length) processFile(files[0]);
+        if (files.length) processFiles(files);
     });
 
     fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) processFile(e.target.files[0]);
+        if (e.target.files.length) processFiles(e.target.files);
     });
 
     calculateBtn.addEventListener('click', () => {
@@ -65,26 +65,38 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateAndDisplayResults(tripsWithEstimate);
     });
 
-    function processFile(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const text = e.target.result;
-            stationErrors.clear(); // Clear previous errors
-            const trips = parseCSV(text);
+    function processFiles(fileList) {
+        const readers = [];
+        stationErrors.clear(); // Clear previous errors
 
-            if (trips.length === 0) {
-                alert("No valid trips found in CSV. Please check the format.");
+        for (let i = 0; i < fileList.length; i++) {
+            readers.push(readFile(fileList[i]));
+        }
+
+        Promise.all(readers).then(results => {
+            let allTrips = [];
+            results.forEach(text => {
+                const trips = parseCSV(text);
+                allTrips = allTrips.concat(trips);
+            });
+
+            if (allTrips.length === 0) {
+                alert("No valid trips found in CSV(s). Please check the format.");
                 return;
             }
 
-            currentTrips = trips;
+            // Deduplicate
+            allTrips = deduplicateTrips(allTrips);
+            currentTrips = allTrips;
 
-            // Auto-detect pass from trips
-            const detectedPass = detectPassFromTrips(trips);
+            // Auto-detect pass from trips (using most frequent or max?)
+            // For multi-month, we might detect different passes. 
+            // Let's just detect if *any* pass was used.
+            const detectedPass = detectPassFromTrips(allTrips);
             detectedPassLevel = detectedPass || 0;
 
             // Calculate Date Range
-            const dates = trips.map(t => new Date(t.date));
+            const dates = allTrips.map(t => new Date(t.date));
             const minDate = new Date(Math.min.apply(null, dates));
             const maxDate = new Date(Math.max.apply(null, dates));
             const dateRangeStr = `${minDate.toLocaleDateString()} - ${maxDate.toLocaleDateString()}`;
@@ -101,38 +113,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
             detectedPassDisplay.innerHTML = `
                 <div style="margin-bottom: 8px; font-size: 0.9em; color: #666;">
-                    ${dateRangeStr}
+                    ${dateRangeStr} • ${fileList.length} file(s)
                 </div>
                 ${passInfoHtml}
             `;
 
             // Check if we need estimation
-            // Try to resolve fares for pass trips first
-            let tripsWithFares = resolveFares(trips);
+            let tripsWithFares = resolveFares(allTrips);
 
             // Display any errors found during processing
             displayErrors();
 
-            // If we still have trips with 0 cost that are pass trips AND haven't been resolved (isEstimated !== false)
             const stillNeedsEstimation = tripsWithFares.some(t => t.isPassTrip && t.cost === 0 && t.isEstimated !== false);
 
             resultsSection.classList.add('hidden');
 
             if (stillNeedsEstimation) {
-                // Update currentTrips to the partially resolved ones, so the user only estimates the remainder?
-                // Or just ask for a global estimate to fill in the gaps.
-                // Let's use the resolved ones where possible.
                 currentTrips = tripsWithFares;
-
                 estimationSection.classList.remove('hidden');
-                // Scroll to estimation
                 estimationSection.scrollIntoView({ behavior: 'smooth' });
             } else {
                 estimationSection.classList.add('hidden');
                 calculateAndDisplayResults(tripsWithFares);
             }
-        };
-        reader.readAsText(file);
+        });
+    }
+
+    function readFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(e);
+            reader.readAsText(file);
+        });
+    }
+
+    function deduplicateTrips(trips) {
+        const seen = new Set();
+        return trips.filter(trip => {
+            // Create a unique key for the trip
+            // Use Date + Time + Balance + Description + Operator
+            // Note: Seq # might not be unique across files if they overlap or are from different exports?
+            // Actually Seq # should be unique per card, but let's be safe with content.
+            const key = `${trip.date}-${trip.operator}-${trip.entry}-${trip.exit}-${trip.balance}`;
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
     }
 
     function resolveFares(trips) {
@@ -482,10 +511,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentPassValue = currentPassLevel > 0 ? 'pass' : 'none';
 
         // 1. Calculate actual spend (Pay As You Go)
-        // If we estimated fares, this is the "Projected Pay As You Go" cost
         const payAsYouGoTotal = trips.reduce((sum, trip) => sum + trip.cost, 0);
 
-        // 2. Calculate optimal pass
+        // 2. Group trips by month
+        const tripsByMonth = {};
+        trips.forEach(trip => {
+            if (trip.date) {
+                const d = new Date(trip.date);
+                const key = `${d.getFullYear()}-${d.getMonth() + 1}`; // YYYY-M
+                if (!tripsByMonth[key]) tripsByMonth[key] = [];
+                tripsByMonth[key].push(trip);
+            }
+        });
+
+        const activeMonthsCount = Object.keys(tripsByMonth).length;
+
+        // 3. Calculate optimal pass
         const passLevels = [
             2.25, 2.50, 2.75, 3.00, 3.25, 3.50, 3.75, 4.00,
             4.25, 4.50, 4.75, 5.00, 5.25, 5.50, 5.75, 6.00,
@@ -500,17 +541,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Check each pass level
         passLevels.forEach(level => {
-            const passCost = level * 32; // Monthly pass price
-            let surcharges = 0;
+            // For this pass level, calculate total cost across all months
+            // Total Cost = (Pass Price * Months) + Sum(Surcharges)
 
-            trips.forEach(trip => {
-                // If trip cost > pass level, you pay the difference
-                if (trip.cost > level) {
-                    surcharges += (trip.cost - level);
-                }
+            // Note: If a month has NO trips, we shouldn't buy a pass for it?
+            // The user said "easier for most users to just get one pass and keep renewing that one".
+            // But if they didn't use it at all in a month, they probably wouldn't renew?
+            // Let's assume they buy it for every month they have data for.
+
+            const monthlyPassPrice = level * 32;
+            let totalScenarioCost = 0;
+
+            Object.values(tripsByMonth).forEach(monthTrips => {
+                let monthSurcharges = 0;
+                monthTrips.forEach(trip => {
+                    if (trip.cost > level) {
+                        monthSurcharges += (trip.cost - level);
+                    }
+                });
+                totalScenarioCost += (monthlyPassPrice + monthSurcharges);
             });
-
-            const totalScenarioCost = passCost + surcharges;
 
             if (totalScenarioCost < bestOption.totalCost) {
                 bestOption = {
@@ -521,52 +571,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // 3. Determine Scenario and Message
+        // 4. Determine Scenario and Message
         let scenario = 0;
         let message = "";
         let badgeClass = "neutral";
         let badgeText = "Info";
 
-        // Logic for 6 scenarios
         if (currentPassValue === 'none') {
             if (bestOption.type === 'none') {
-                // 1. Customer doesn't have a pass, doesn't need one
-                scenario = 1;
                 message = "You are already saving the most by paying as you go. No pass needed.";
                 badgeClass = "success";
                 badgeText = "Keep As Is";
             } else {
-                // 2. Customer doesn't have a pass, needs one
-                scenario = 2;
                 message = `You should buy the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong>.`;
                 badgeClass = "warning";
                 badgeText = "Buy Pass";
             }
         } else {
-            // Customer has a pass
             if (bestOption.type === 'none') {
-                // 3. Customer has a pass, doesn't need one
-                scenario = 3;
                 message = "You are overspending on your pass. You should switch to <strong>Pay As You Go</strong>.";
                 badgeClass = "warning";
                 badgeText = "Cancel Pass";
             } else {
-                // Customer has a pass, and needs a pass (maybe different one)
                 if (bestOption.level < currentPassLevel) {
-                    // 4. Customer has a pass, needs a cheaper one
-                    scenario = 4;
                     message = `You can save money by downgrading to the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong>.`;
                     badgeClass = "warning";
                     badgeText = "Downgrade";
                 } else if (bestOption.level === currentPassLevel) {
-                    // 5. Customer has a pass, has the right one
-                    scenario = 5;
                     message = "Perfect! You have the correct pass for your usage.";
                     badgeClass = "success";
                     badgeText = "Keep As Is";
                 } else {
-                    // 6. Customer has a pass, needs a more expensive one
-                    scenario = 6;
                     message = `You would actually save money by upgrading to the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong> to avoid surcharges.`;
                     badgeClass = "warning";
                     badgeText = "Upgrade";
@@ -574,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 4. Update UI
+        // 5. Update UI
         resultsSection.classList.remove('hidden');
 
         // Calculate savings
@@ -582,14 +617,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPassValue === 'none') {
             currentScenarioCost = payAsYouGoTotal;
         } else {
-            const currentPassCost = currentPassLevel * 32;
-            let currentSurcharges = 0;
-            trips.forEach(trip => {
-                if (trip.cost > currentPassLevel) {
-                    currentSurcharges += (trip.cost - currentPassLevel);
-                }
+            // Current pass cost across all months
+            const currentPassMonthlyPrice = currentPassLevel * 32;
+            Object.values(tripsByMonth).forEach(monthTrips => {
+                let monthSurcharges = 0;
+                monthTrips.forEach(trip => {
+                    if (trip.cost > currentPassLevel) {
+                        monthSurcharges += (trip.cost - currentPassLevel);
+                    }
+                });
+                currentScenarioCost += (currentPassMonthlyPrice + monthSurcharges);
             });
-            currentScenarioCost = currentPassCost + currentSurcharges;
         }
 
         const savings = currentScenarioCost - bestOption.totalCost;
@@ -603,7 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('savings').textContent = `$${savings.toFixed(2)}`;
 
         document.getElementById('details-text').innerHTML = `
-            Based on ${trips.length} trips found in your CSV.<br>
+            Based on ${trips.length} trips over ${activeMonthsCount} month(s).<br>
             Pay-As-You-Go Total: $${payAsYouGoTotal.toFixed(2)}<br>
             Best Option: ${bestOption.type === 'none' ? 'Pay As You Go' : '$' + bestOption.level.toFixed(2) + ' Pass'}
         `;
