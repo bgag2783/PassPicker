@@ -7,29 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const estimatedFareInput = document.getElementById('estimated-fare');
     const passDisplayArea = document.getElementById('pass-display-area');
     const detectedPassDisplay = document.getElementById('detected-pass-display');
+    const shareBtn = document.getElementById('share-btn');
+    const toast = document.getElementById('toast');
 
     let currentTrips = [];
+    let latestAnalysis = null; // Store results for sharing
     let detectedPassLevel = 0; // 0 means no pass
-    let stationsData = [];
-    let faresData = [];
-    let stationOverrides = {};
     let stationErrors = new Set();
 
-    // Load reference data
-    fetch('stations.json')
-        .then(r => r.json())
-        .then(data => stationsData = data)
-        .catch(e => console.warn("Could not load stations.json", e));
-
-    fetch('fares.json')
-        .then(r => r.json())
-        .then(data => faresData = data)
-        .catch(e => console.warn("Could not load fares.json", e));
-
-    fetch('station_overrides.json')
-        .then(r => r.json())
-        .then(data => stationOverrides = data)
-        .catch(e => console.warn("Could not load station_overrides.json", e));
+    // Data is now loaded via <script> tags (stationsData, faresData, stationOverrides)
 
     // Drag and Drop Handlers
     dropZone.addEventListener('dragover', (e) => {
@@ -70,6 +56,57 @@ document.addEventListener('DOMContentLoaded', () => {
         estimationSection.classList.add('hidden');
         calculateAndDisplayResults(tripsWithEstimate);
     });
+
+    // Share Feature
+    shareBtn.addEventListener('click', () => {
+        if (!latestAnalysis) return;
+
+        const text = generateShareText(latestAnalysis);
+        copyToClipboard(text);
+    });
+
+    function generateShareText(data) {
+        // Calculate Peak % for the text
+        let peakCount = 0;
+        let total = 0;
+        currentTrips.forEach(t => {
+            if (t.operator === 'Metrorail' && t.date) {
+                total++;
+                if (checkPeak(new Date(t.date))) peakCount++;
+            }
+        });
+        const peakPct = total > 0 ? Math.round((peakCount / total) * 100) : 0;
+
+        return `${data.shareTitle}\n` +
+            `💰 Potential Savings: $${data.savings.toFixed(2)}\n` +
+            `🗓️ Trips Analyzed: ${data.tripCount}\n` +
+            `⚡ Peak Rides: ${peakPct}%\n` +
+            `✅ Recommendation: ${data.recommendation}\n\n` +
+            `Check your savings: https://bgag2783.github.io/PassPicker/`;
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast();
+        }).catch(err => {
+            console.error('Failed to copy', err);
+            // Fallback for older browsers if needed, but modern normally works
+        });
+    }
+
+    function showToast() {
+        toast.classList.remove('hidden');
+        // Trigger reflow
+        void toast.offsetWidth;
+        toast.classList.add('show');
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
+        }, 3000);
+    }
 
     function processFiles(fileList) {
         const readers = [];
@@ -184,26 +221,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resolveFares(trips) {
-        if (!stationsData.length || !faresData.length) {
-            console.warn("Missing reference data:", { stations: stationsData.length, fares: faresData.length });
+        if (!typeof stationsData === 'undefined' || !stationsData.length || !faresData.length) {
+            console.warn("Missing reference data:", { stations: typeof stationsData !== 'undefined' ? stationsData.length : 'undefined' });
             return trips;
         }
 
         return trips.map(trip => {
-            if (trip.isPassTrip && trip.cost === 0) {
+            // If it's a pass trip, we want to know the *full value* of the trip.
+            // Even if it had a surcharge (cost > 0), the "value" is higher.
+            if (trip.isPassTrip) {
                 if (trip.operator === 'Metrorail') {
                     if (trip.entry && trip.exit) {
                         const fare = lookupFare(trip.entry, trip.exit, trip.date);
                         if (fare !== null) {
                             return { ...trip, cost: fare, isEstimated: false };
                         } else {
-                            // Error already collected in lookupFare or findStation
+                            // Error already collected
                         }
-                    } else {
-                        // console.warn("Trip missing entry/exit:", trip);
                     }
                 } else if (trip.operator === 'Metrobus') {
-                    // Default Metrobus fare is $2.00, Express is $4.25
+                    // ... same bus logic ...
                     let fare = 2.00;
                     if (trip.entry && trip.entry.toLowerCase().includes('express')) {
                         fare = 4.25;
@@ -259,15 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let station = stationsData.find(s => s.Name.toLowerCase() === cleanName);
         if (station) return station;
 
-        // Try fuzzy / mapping
-        // CSV: "NoMa Gallaudet South" -> API: "NoMa-Gallaudet U"
-        // CSV: "Dupont Circle N" -> API: "Dupont Circle"
-        // CSV: "U Street-Cardozo" -> API: "U Street/African-Amer Civil War Memorial/Cardozo"
-
-        // Simple heuristic: match if API name contains CSV name parts or vice versa
-        // Or specific overrides
-        // Simple heuristic: match if API name contains CSV name parts or vice versa
-        // Or specific overrides
+        // Get the station from the hardcoded override list
 
         if (stationOverrides[cleanName]) {
             return stationsData.find(s => s.Name === stationOverrides[cleanName]);
@@ -341,9 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const description = columns[2];
             const operator = columns[3];
             const entryLoc = columns[4]; // Entry Location/ Bus Route
-            const exitLoc = columns[5];  // Exit Location (Wait, header says Exit Location is col 5? Let's check)
-            // Header: Seq. #,Time,Description,Operator,Entry Location/ Bus Route,Exit Location,Product...
-            // 0: Seq, 1: Time, 2: Desc, 3: Op, 4: Entry, 5: Exit, 6: Product
+            const exitLoc = columns[5];  // Exit Location
 
             const product = columns[6] || "";
             const changeStr = columns[8];
@@ -383,14 +410,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (isRide) {
+                const isPassTrip = product.toLowerCase().includes('pass') || product.toLowerCase().includes('monthly');
+
                 trips.push({
                     date: time,
                     operator: operator,
                     entry: entryLoc,
                     exit: exitLoc,
-                    cost: cost,
+                    cost: cost, // Initial cost from CSV (surcharge or full fare)
+                    surcharge: isPassTrip ? cost : 0, // Store what was actually paid for this ride
                     product: product,
-                    isPassTrip: (cost === 0 && product.toLowerCase().includes('pass'))
+                    isPassTrip: isPassTrip
                 });
             }
         }
@@ -421,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calculateAndDisplayResults(trips) {
-        // trips contains only rides now (parseCSV reverted)
+        // trips contains only rides
         const rideTrips = trips;
 
         // Detect passes per month
@@ -431,10 +461,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Calculate actual spend (Pay As You Go + Inferred Pass Costs)
         let actualRideSpend = 0;
         rideTrips.forEach(t => {
-            // Sum all ride costs (surcharges or PAYG)
-            // If it was a pass trip (isPassTrip=true), the actual cost was 0 (covered by pass).
-            // We only add cost if it wasn't fully covered (surcharge) or no pass.
-            if (!t.isPassTrip) {
+            if (t.isPassTrip) {
+                // For a pass trip, actual spend is just the surcharge paid
+                actualRideSpend += (t.surcharge || 0);
+            } else {
                 actualRideSpend += t.cost;
             }
         });
@@ -585,6 +615,28 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSection.scrollIntoView({ behavior: 'smooth' });
 
         calculateAnalytics(rideTrips);
+
+        // Generate Share Title
+        let shareTitle = "PassPicker Results 🚇";
+        if (activeMonthsCount === 1) {
+            // "2025-10"
+            const [year, month] = Object.keys(tripsByMonth)[0].split('-');
+            const date = new Date(year, month - 1);
+            const monthName = date.toLocaleString('default', { month: 'long' });
+            shareTitle = `PassPicker Results for ${monthName} ${year} 🚇`;
+        } else {
+            shareTitle = `PassPicker Results for ${activeMonthsCount} months 🚇`;
+        }
+
+        // Store for sharing
+        latestAnalysis = {
+            shareTitle: shareTitle,
+            savings: Math.max(0, savings),
+            tripCount: rideTrips.length,
+            recommendation: bestOption.type === 'none' ? 'Pay As You Go' : `$${bestOption.level.toFixed(2)} Pass`,
+            totalSpend: totalActualSpend
+        };
+
         renderMap(rideTrips);
     }
 
@@ -601,17 +653,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const monthPassPrice = detectedPasses[key];
 
             // Determine "Your Cost" (Current)
-            // If they had a pass for this month, cost is max(0, trip.cost - passLevel)
-            // If no pass, cost is trip.cost
             let yourCost = 0;
-            if (monthPassPrice) {
-                // passPrice is e.g. 4.50. Pass Level is price / 32? No, price IS the level?
-                // Wait, detectedPassFromTrips returns the PRICE (e.g. 4.50).
-                // The pass covers trips up to that price.
-                // So passLevel = monthPassPrice? No, pass COST is $144 for a $4.50 pass.
-                // The CSV says "Monthly Unlimited Pass $4.50 Price Point".
-                // So the value we extracted IS the level (4.50).
-                yourCost = Math.max(0, trip.cost - monthPassPrice);
+            if (trip.isPassTrip) {
+                yourCost = trip.surcharge || 0;
             } else {
                 yourCost = trip.cost;
             }

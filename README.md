@@ -16,9 +16,7 @@ A simple, private, and static web application to help Washington D.C. area commu
 ## How to Use
 
 1.  **Export your history**: Log in to your [SmarTrip account](https://smartrip.wmata.com/) and export your card usage history as CSV files (e.g., one for each month).
-2.  **Open the App**:
-    *   **Web (Recommended)**: Visit [bgag2783.github.io/PassPicker](https://bgag2783.github.io/PassPicker/).
-    *   **Local (For Development)**: Run a local web server (e.g., `python3 -m http.server`) and open `http://localhost:8000`.
+2.  **Open the App**: Visit [bgag2783.github.io/PassPicker](https://bgag2783.github.io/PassPicker/).
 3.  **Drag & Drop**: Drag your CSV file(s) onto the page. You can drop multiple files at once.
 4.  **View Results**: Instantly see your actual spend, optimal pass cost, potential savings, and detailed analytics.
 
@@ -26,12 +24,6 @@ A simple, private, and static web application to help Washington D.C. area commu
 
 *   **Zero Data Collection**: No analytics or tracking scripts.
 *   **Map Visualization**: Uses [Leaflet.js](https://leafletjs.com/) with CartoDB tiles. Map tiles are fetched from the internet, but your trip data is overlaid locally and never sent to the map provider.
-
-## Development
-
-### Prerequisites
-
-*   Python 3 (for local server)
 
 ## License
 

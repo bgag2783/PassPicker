@@ -96,7 +96,12 @@
             <section id="results-section" class="card results-section hidden">
                 <div class="result-header">
                     <h2>Recommendation</h2>
-                    <div id="recommendation-badge" class="badge">Checking...</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button id="share-btn" class="btn-share" title="Share Results">
+                            <span class="icon">📤</span> Share
+                        </button>
+                        <div id="recommendation-badge" class="badge">Checking...</div>
+                    </div>
                 </div>
 
                 <div class="result-content">
@@ -124,7 +129,7 @@
                             Trip Details</button>
                     </div>
 
-                    <div id="details-table-container" class="hidden" style="margin-top: 24px; overflow-x: auto;">
+                    <div id="details-table-container" class="hidden table-container" style="margin-top: 24px;">
                         <table id="trip-details-table">
                             <thead>
                                 <tr>
@@ -211,6 +216,14 @@
                     style="color: inherit; text-decoration: underline;">View on GitHub</a></p>
         </footer>
     </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">Copied to clipboard! 📋</div>
+
+    <!-- Data Files -->
+    <script src="stations.js"></script>
+    <script src="fares.js"></script>
+    <script src="station_overrides.js"></script>
     <script src="script.js"></script>
 </body>
 
