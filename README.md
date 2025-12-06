@@ -22,7 +22,6 @@ A simple, private, and static web application to help Washington D.C. area commu
 
 ## Privacy & Technology
 
-*   **Zero Data Collection**: No analytics or tracking scripts.
 *   **Map Visualization**: Uses [Leaflet.js](https://leafletjs.com/) with CartoDB tiles. Map tiles are fetched from the internet, but your trip data is overlaid locally and never sent to the map provider.
 
 ## License
