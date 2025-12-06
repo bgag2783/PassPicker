@@ -9,13 +9,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const detectedPassDisplay = document.getElementById('detected-pass-display');
     const shareBtn = document.getElementById('share-btn');
     const toast = document.getElementById('toast');
+    const exampleLink = document.getElementById('example-link');
 
     let currentTrips = [];
     let latestAnalysis = null; // Store results for sharing
     let detectedPassLevel = 0; // 0 means no pass
     let stationErrors = new Set();
+    let isExampleData = false;
 
     // Data is now loaded via <script> tags (stationsData, faresData, stationOverrides)
+
+    // Example Data Handler
+    exampleLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadExampleData();
+    });
 
     // Drag and Drop Handlers
     dropZone.addEventListener('dragover', (e) => {
@@ -193,6 +201,173 @@ document.addEventListener('DOMContentLoaded', () => {
                 calculateAndDisplayResults(tripsWithFares);
             }
         });
+    }
+
+    function loadExampleData() {
+        const trips = generateExampleData();
+
+        // Mocking file list for display
+        const dropZone = document.getElementById('drop-zone');
+
+        currentTrips = trips;
+        isExampleData = true;
+
+        // Reset display
+        document.getElementById('detected-pass-display').innerHTML = `
+            <div style="margin-bottom: 8px; font-size: 0.9em; color: #666;">
+                Example Data • 1 Month
+            </div>
+            <span class="badge neutral">Example</span> No Active Pass (Pay As You Go)
+        `;
+        document.getElementById('pass-display-area').style.display = 'block';
+
+        // Clear errors
+        stationErrors.clear();
+        displayErrors();
+
+        // Hide estimations
+        document.getElementById('estimation-section').classList.add('hidden');
+
+        // Show results
+        calculateAndDisplayResults(trips);
+    }
+
+    function generateExampleData() {
+        const trips = [];
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth() === 0 ? 11 : today.getMonth() - 1; // Previous month
+        const actualYear = today.getMonth() === 0 ? year - 1 : year;
+
+        const daysInMonth = new Date(actualYear, month + 1, 0).getDate();
+
+        // Data Generation Strategy: "The Realistic Commuter"
+        // 1. Establish "Home" and "Work" (Core Commute)
+        // 2. Establish 3-4 "Other" destinations (Social, Errands)
+        // 3. Generate Core Commute (M-F, Peak, AM/PM) with some entropy (sick days, happy hour)
+        // 4. Generate Other Trips (Weekends, Evenings, Lunches)
+
+        // Filter valid stations
+        const validStations = stationsData.filter(s => s.Lat && s.Lon);
+
+        // Pick Home and Work
+        let homeStation, workStation, peakFare;
+
+        // Retry until we find a route with a significant fare (>$4.50) to ensure savings
+        let attempts = 0;
+        while (attempts < 100) {
+            const homeIdx = Math.floor(Math.random() * validStations.length);
+            homeStation = validStations[homeIdx];
+
+            let workIdx = Math.floor(Math.random() * validStations.length);
+            while (workIdx === homeIdx) workIdx = Math.floor(Math.random() * validStations.length);
+            workStation = validStations[workIdx];
+
+            // Check fare at a peak time (Mon 8am)
+            const testDate = new Date(actualYear, month, 1, 8, 0, 0);
+            while (testDate.getDay() === 0 || testDate.getDay() === 6) {
+                testDate.setDate(testDate.getDate() + 1);
+            }
+
+            peakFare = lookupFare(homeStation.Name, workStation.Name, testDate.toString());
+
+            if (peakFare && peakFare > 4.50) {
+                break; // Found a good route
+            }
+            attempts++;
+        }
+
+        // Fallback if random search fails (unlikely)
+        if (!peakFare || peakFare <= 4.50) {
+            // Fallback to a known long route: Vienna to Metro Center
+            homeStation = stationsData.find(s => s.Code === 'K08'); // Vienna
+            workStation = stationsData.find(s => s.Code === 'A01'); // Metro Center
+        }
+
+        // Pick 3 Random "Other" Destinations
+        const otherStations = [];
+        for (let i = 0; i < 3; i++) {
+            let idx = Math.floor(Math.random() * validStations.length);
+            while (validStations[idx].Code === homeStation.Code || validStations[idx].Code === workStation.Code || otherStations.includes(validStations[idx])) {
+                idx = Math.floor(Math.random() * validStations.length);
+            }
+            otherStations.push(validStations[idx]);
+        }
+
+        // Helper to add trip with REAL FARE LOOKUP
+        const addTrip = (d, h, m, entry, exit) => {
+            const dateObj = new Date(actualYear, month, d);
+            dateObj.setHours(h, m, 0);
+            const dateStr = dateObj.toString();
+
+            // Lookup EXACT fare
+            const cost = lookupFare(entry.Name, exit.Name, dateStr);
+
+            if (cost !== null) {
+                trips.push({
+                    date: dateStr,
+                    operator: 'Metrorail',
+                    entry: entry.Name,
+                    exit: exit.Name,
+                    cost: cost,
+                    surcharge: 0,
+                    product: 'Stored Value',
+                    isPassTrip: false
+                });
+            }
+        };
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const date = new Date(actualYear, month, d);
+            const dayOfWeek = date.getDay(); // 0=Sun, 6=Sat
+
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+            // 1. Core Commute (M-F)
+            if (!isWeekend) {
+                // 90% chance of going to work
+                if (Math.random() < 0.9) {
+                    // AM: Home -> Work
+                    // Time: 7:00 - 9:30 AM (Peak)
+                    const amHour = 7 + Math.floor(Math.random() * 2); // 7 or 8
+                    const amMin = Math.floor(Math.random() * 59);
+                    addTrip(d, amHour, amMin, homeStation, workStation);
+
+                    // PM: Work -> Home
+                    // Time: 4:30 - 7:00 PM (Peak)
+                    const pmHour = 16 + Math.floor(Math.random() * 3); // 16-18
+                    const pmMin = Math.floor(Math.random() * 59);
+                    addTrip(d, pmHour, pmMin, workStation, homeStation);
+                }
+            }
+
+            // 2. Random Other Trips (Any Day)
+            const tripChance = isWeekend ? 0.6 : 0.2;
+
+            if (Math.random() < tripChance) {
+                // Pick a destination
+                const dest = otherStations[Math.floor(Math.random() * otherStations.length)];
+
+                // Determine Time
+                let h, m = Math.floor(Math.random() * 59);
+                if (Math.random() < 0.5) {
+                    h = 10 + Math.floor(Math.random() * 5); // 10-14 (Off Peak)
+                } else {
+                    h = 20 + Math.floor(Math.random() * 3); // 20-22 (Off Peak)
+                }
+
+                // Go there
+                addTrip(d, h, m, homeStation, dest);
+
+                // Return trip
+                let h2 = h + 2 + Math.floor(Math.random() * 2);
+                if (h2 > 23) h2 = 23;
+
+                addTrip(d, h2, Math.floor(Math.random() * 59), dest, homeStation);
+            }
+        }
+
+        return trips;
     }
 
     function readFile(file) {

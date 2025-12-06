@@ -545,3 +545,43 @@ footer {
     opacity: 1;
     transform: translateX(-50%) translateY(-10px);
 }
+
+@keyframes gradient-border {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.btn-ai {
+    display: block;
+    margin: 12px auto 0;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    background: white;
+    border: double 2px transparent;
+    border-radius: 20px;
+    background-image: linear-gradient(white, white),
+        linear-gradient(270deg, #ff00cc, #333399, #00bfff, #33cc33, #ffff00, #ff0000);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size: 200% 200%;
+    animation: gradient-border 3s ease infinite;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 8px 16px;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.btn-ai:hover {
+    transform: scale(1.05);
+}
