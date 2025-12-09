@@ -88,5 +88,8 @@ const stationOverrides = {
     "west falls church-vt/uva": "West Falls Church",
     "white flint": "North Bethesda",
     "wiehle-reston east": "Wiehle-Reston East",
-    "woodley park-zoo": "Woodley Park-Zoo/Adams Morgan"
+    "woodley park-zoo": "Woodley Park-Zoo/Adams Morgan",
+    "anacostia n": "Anacostia",
+    "anacostia s": "Anacostia",
+    "ga ave-petworth": "Georgia Avenue-Petworth"
 };

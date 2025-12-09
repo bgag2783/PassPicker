@@ -496,7 +496,7 @@ footer {
 }
 
 .modal-content {
-    background: white;
+    background: var(--card-bg);
     padding: 32px;
     border-radius: 24px;
     max-width: 500px;
@@ -634,4 +634,173 @@ footer {
 .theme-toggle .icon {
     font-size: 1.2rem;
     margin-bottom: 0;
+}
+
+/* Break-Even Progress Bar */
+.break-even-container {
+    background: var(--surface-bg);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 32px;
+    border: 1px solid var(--border-color);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.progress-header h3 {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.progress-track {
+    width: 100%;
+    height: 12px;
+    background: var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--success));
+    border-radius: 6px;
+    transition: width 1s ease-out;
+}
+
+/* Calendar Heatmap */
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.btn-sm {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 4px 10px;
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+.btn-sm:hover {
+    background: var(--surface-bg);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.calendar-day-header {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: center;
+    padding-bottom: 4px;
+}
+
+.cal-day {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    position: relative;
+    cursor: default;
+    transition: transform 0.1s;
+}
+
+/* Heatmap Levels */
+.cal-day.level-0 {
+    opacity: 0.5;
+}
+
+.cal-day.level-1 {
+    background: rgba(0, 122, 255, 0.2);
+    /* Low */
+}
+
+.cal-day.level-2 {
+    background: rgba(0, 122, 255, 0.5);
+    /* Med */
+    color: white;
+}
+
+.cal-day.level-3 {
+    background: rgba(0, 122, 255, 0.9);
+    /* High */
+    color: white;
+}
+
+.cal-day:hover {
+    transform: scale(1.1);
+    z-index: 2;
+    border-color: var(--primary);
+}
+
+.cal-day .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.cal-day:hover .tooltip {
+    display: block;
+}
+
+.calendar-legend {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.calendar-legend .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 4px;
+}
+
+.calendar-legend .dot.level-0 {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+}
+
+.calendar-legend .dot.level-1 {
+    background: rgba(0, 122, 255, 0.2);
+}
+
+.calendar-legend .dot.level-2 {
+    background: rgba(0, 122, 255, 0.5);
+}
+
+.calendar-legend .dot.level-3 {
+    background: rgba(0, 122, 255, 0.9);
 }
