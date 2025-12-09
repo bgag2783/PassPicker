@@ -832,6 +832,81 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         renderMap(rideTrips);
+
+        // 6. Break-Even Analysis
+        const breakEvenSection = document.getElementById('break-even-section');
+        const breakEvenBar = document.getElementById('break-even-bar');
+        const breakEvenStatus = document.getElementById('break-even-status');
+        const breakEvenText = document.getElementById('break-even-text');
+
+        // Only show Break-Even for single month analysis to avoid confusion
+        if (bestOption.type === 'pass' && activeMonthsCount === 1) {
+            const passPrice = bestOption.level * 32; // This is monthly pass cost
+            // Wait, bestOption.level is the "Pass Level" (e.g. $2.25). 
+            // The monthly cost is level * 32. But wait, WMATA pricing is complex.
+            // "Select a pass level... The cost is current pass level * 32".  Yes.
+
+            const monthlyCost = bestOption.level * 32;
+            const avgTripWithPass = bestOption.level; // Effectively capped at this? No.
+
+            // To be simple: How many trips at *pay-as-you-go rates* does it take to equal the pass cost?
+            // But trips have variable costs.
+            // We should sum the trips in chronological order until we hit the pass cost.
+
+            let cumulativeSpend = 0;
+            let tripCount = 0;
+            let breakEvenTripIndex = -1;
+
+            // Sort trips by date
+            const sortedTrips = [...rideTrips].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            for (let i = 0; i < sortedTrips.length; i++) {
+                cumulativeSpend += sortedTrips[i].cost;
+                if (cumulativeSpend >= monthlyCost && breakEvenTripIndex === -1) {
+                    breakEvenTripIndex = i + 1;
+                }
+            }
+
+            const totalTrips = rideTrips.length;
+
+            // If they haven't broken even yet
+            if (breakEvenTripIndex === -1) {
+                const remainingCost = monthlyCost - cumulativeSpend;
+                // Estimate remaining trips needed based on average
+                const avgTripCost = cumulativeSpend / totalTrips;
+                const tripsNeeded = Math.ceil(remainingCost / avgTripCost);
+
+                const progressPct = Math.min(100, (cumulativeSpend / monthlyCost) * 100);
+
+                breakEvenBar.style.width = `${progressPct}%`;
+                breakEvenBar.style.background = 'linear-gradient(90deg, var(--warning), var(--primary))';
+                breakEvenStatus.textContent = "Keep Riding";
+                breakEvenStatus.className = "badge warning";
+                breakEvenText.innerHTML = `You've taken <strong>${totalTrips}</strong> trips. You need about <strong>${tripsNeeded}</strong> more to break even on the $${bestOption.level.toFixed(2)} pass.`;
+            } else {
+                // They broke even (theoretically or actually)
+                breakEvenBar.style.width = '100%';
+                breakEvenBar.style.background = 'var(--success)';
+
+                // Compare Actual Spend vs Optimal to see if they *actually* had the pass
+                // We use a small threshold for floating point differences
+                const actuallyHadPass = totalActualSpend <= (bestOption.totalCost + 1.0);
+
+                if (actuallyHadPass) {
+                    breakEvenStatus.textContent = "Money Saved!";
+                    breakEvenStatus.className = "badge success";
+                    breakEvenText.innerHTML = `Great job! You started saving money after trip <strong>#${breakEvenTripIndex}</strong>. Everything after was free bonus!`;
+                } else {
+                    breakEvenStatus.textContent = "Opportunity Missed";
+                    breakEvenStatus.className = "badge warning";
+                    breakEvenText.innerHTML = `With this pass, you would have broken even at trip <strong>#${breakEvenTripIndex}</strong>.`;
+                }
+            }
+            breakEvenSection.classList.remove('hidden');
+        } else {
+            // Pay As You Go is best
+            breakEvenSection.classList.add('hidden');
+        }
     }
 
     function renderTripTable(trips, bestOption, detectedPasses) {
@@ -863,6 +938,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 optimalCost = Math.max(0, trip.cost - bestOption.level);
             }
 
+            // Resolve proper station names
+            const entryStation = findStation(trip.entry);
+            const exitStation = findStation(trip.exit);
+            const entryName = entryStation ? entryStation.Name : (trip.entry || '-');
+            const exitName = exitStation ? exitStation.Name : (trip.exit || '-');
+
             const tr = document.createElement('tr');
 
             const dateStr = d.toLocaleDateString();
@@ -871,8 +952,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.innerHTML = `
                 <td>${dateStr}</td>
                 <td>${timeStr}</td>
-                <td>${trip.entry || '-'}</td>
-                <td>${trip.exit || '-'}</td>
+                <td>${entryName}</td>
+                <td>${exitName}</td>
                 <td class="cost-cell">$${trip.cost.toFixed(2)}</td>
                 <td class="cost-cell">$${yourCost.toFixed(2)}</td>
                 <td class="cost-cell ${optimalCost < yourCost ? 'highlight-cost' : ''}">$${optimalCost.toFixed(2)}</td>
@@ -1047,8 +1128,170 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show section
         document.getElementById('analytics-section').classList.remove('hidden');
+
+        // 4. Commuter Calendar Logic
+        renderCalendar(trips);
     }
 
+    let currentCalDate = new Date();
+    let calendarTrips = [];
+
+    function renderCalendar(trips) {
+        if (trips) calendarTrips = trips;
+
+        // Find date range to set initial view
+        if (trips && trips.length > 0) {
+            // Set to most recent trip month
+            const dates = trips.map(t => new Date(t.date));
+            currentCalDate = new Date(Math.max.apply(null, dates));
+        }
+
+        updateCalendarGrid();
+    }
+
+    function updateCalendarGrid() {
+        const grid = document.getElementById('commuter-calendar');
+        const label = document.getElementById('cal-month-label');
+        grid.innerHTML = '';
+
+        const year = currentCalDate.getFullYear();
+        const month = currentCalDate.getMonth();
+
+        label.textContent = currentCalDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startDayOfWeek = firstDay.getDay(); // 0-6
+
+        // Add Day Headers
+        const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        days.forEach(d => {
+            const div = document.createElement('div');
+            div.className = 'calendar-day-header';
+            div.textContent = d;
+            grid.appendChild(div);
+        });
+
+        // Add Empty Slots
+        for (let i = 0; i < startDayOfWeek; i++) {
+            const div = document.createElement('div');
+            div.className = 'cal-day empty';
+            grid.appendChild(div);
+        }
+
+        // Aggregate Trips per Day
+        const dailyStats = {};
+        calendarTrips.forEach(t => {
+            const d = new Date(t.date);
+            if (d.getFullYear() === year && d.getMonth() === month) {
+                const day = d.getDate();
+                if (!dailyStats[day]) dailyStats[day] = { count: 0, cost: 0 };
+                dailyStats[day].count++;
+
+                // Use actual spend (surcharge for pass trips, full cost for others)
+                const rideCost = t.isPassTrip ? (t.surcharge || 0) : t.cost;
+                dailyStats[day].cost += rideCost;
+            }
+        });
+
+        // Add Days
+        for (let day = 1; day <= daysInMonth; day++) {
+            const div = document.createElement('div');
+            const stats = dailyStats[day] || { count: 0, cost: 0 };
+
+            // Determine Level
+            let level = 0;
+            if (stats.count > 0) level = 1;
+            if (stats.count > 2) level = 2; // Commute
+            if (stats.count > 4) level = 3; // Heavy
+
+            div.className = `cal-day level-${level}`;
+            div.textContent = day;
+
+            if (stats.count > 0) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                tooltip.innerHTML = `${stats.count} trips<br>$${stats.cost.toFixed(2)}`;
+                div.appendChild(tooltip);
+            }
+
+            grid.appendChild(div);
+        }
+
+        // Update Buttons based on available months (Skip empty logic)
+        const availableMonths = getAvailableMonths();
+
+        const prevBtn = document.getElementById('cal-prev');
+        const nextBtn = document.getElementById('cal-next');
+
+        if (availableMonths.length <= 1) {
+            prevBtn.style.visibility = 'hidden';
+            nextBtn.style.visibility = 'hidden';
+        } else {
+            prevBtn.style.visibility = 'visible';
+            nextBtn.style.visibility = 'visible';
+
+            if (availableMonths.length > 0) {
+                const currentMonthTime = new Date(year, month, 1).getTime();
+                const currentIndex = availableMonths.findIndex(d => d.getTime() === currentMonthTime);
+
+                // Determine if we can go Prev/Next
+                const hasPrev = currentIndex > 0;
+                const hasNext = currentIndex !== -1 && currentIndex < availableMonths.length - 1;
+
+                prevBtn.disabled = !hasPrev;
+                nextBtn.disabled = !hasNext;
+
+                // Visual styling
+                prevBtn.style.opacity = !hasPrev ? '0.3' : '1';
+                nextBtn.style.opacity = !hasNext ? '0.3' : '1';
+                prevBtn.style.cursor = !hasPrev ? 'default' : 'pointer';
+                nextBtn.style.cursor = !hasNext ? 'default' : 'pointer';
+            }
+        }
+    }
+
+    function getAvailableMonths() {
+        if (!calendarTrips || calendarTrips.length === 0) return [];
+        const uniqueMonths = new Set();
+        calendarTrips.forEach(t => {
+            const d = new Date(t.date);
+            uniqueMonths.add(`${d.getFullYear()}-${d.getMonth()}`);
+        });
+
+        return Array.from(uniqueMonths).map(str => {
+            const [y, m] = str.split('-');
+            return new Date(parseInt(y), parseInt(m), 1);
+        }).sort((a, b) => a - b);
+    }
+
+    // Calendar Navigation
+    document.getElementById('cal-prev').addEventListener('click', () => {
+        if (document.getElementById('cal-prev').disabled) return;
+
+        const availableMonths = getAvailableMonths();
+        const currentMonthTime = new Date(currentCalDate.getFullYear(), currentCalDate.getMonth(), 1).getTime();
+        const currentIndex = availableMonths.findIndex(d => d.getTime() === currentMonthTime);
+
+        if (currentIndex > 0) {
+            currentCalDate = new Date(availableMonths[currentIndex - 1]);
+            updateCalendarGrid();
+        }
+    });
+
+    document.getElementById('cal-next').addEventListener('click', () => {
+        if (document.getElementById('cal-next').disabled) return;
+
+        const availableMonths = getAvailableMonths();
+        const currentMonthTime = new Date(currentCalDate.getFullYear(), currentCalDate.getMonth(), 1).getTime();
+        const currentIndex = availableMonths.findIndex(d => d.getTime() === currentMonthTime);
+
+        if (currentIndex !== -1 && currentIndex < availableMonths.length - 1) {
+            currentCalDate = new Date(availableMonths[currentIndex + 1]);
+            updateCalendarGrid();
+        }
+    });
 
     // Onboarding Modal Logic
     const modal = document.getElementById('onboarding-modal');

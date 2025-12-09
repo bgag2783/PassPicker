@@ -130,6 +130,18 @@
                         </div>
                     </div>
 
+                    <!-- Break-Even Progress -->
+                    <div id="break-even-section" class="break-even-container hidden">
+                        <div class="progress-header">
+                            <h3>Break-Even Progress</h3>
+                            <span id="break-even-status" class="badge neutral">Calculating...</span>
+                        </div>
+                        <div class="progress-track">
+                            <div id="break-even-bar" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p id="break-even-text" class="small-text" style="margin-top: 8px;">analyzing...</p>
+                    </div>
+
                     <div class="details">
                         <h3>Analysis Details</h3>
                         <p id="details-text"></p>
@@ -170,6 +182,25 @@
                         <h3>Top Stations</h3>
                         <div id="top-stations-list" class="bars-container">
                             <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Commuter Calendar -->
+                    <div class="analytics-card" style="grid-column: span 2;">
+                        <h3>Trip Heatmap</h3>
+                        <div class="calendar-controls">
+                            <button id="cal-prev" class="btn-sm" aria-label="Previous Month">&larr;</button>
+                            <span id="cal-month-label">December 2025</span>
+                            <button id="cal-next" class="btn-sm" aria-label="Next Month">&rarr;</button>
+                        </div>
+                        <div id="commuter-calendar" class="calendar-grid">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="calendar-legend">
+                            <span class="legend-item"><span class="dot level-0"></span>None</span>
+                            <span class="legend-item"><span class="dot level-1"></span>Low</span>
+                            <span class="legend-item"><span class="dot level-2"></span>Med</span>
+                            <span class="legend-item"><span class="dot level-3"></span>High</span>
                         </div>
                     </div>
 
