@@ -19,43 +19,49 @@
 
 <body>
     <div class="container">
-        <!-- ... header ... -->
+        <header>
 
-        <h1>WMATA Pass Picker</h1>
-        <p class="subtitle">Optimize your commute. Save money.</p>
-        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
-            <span class="icon">🌙</span>
-        </button>
+            <h1>WMATA Pass Picker</h1>
+            <p class="subtitle">Optimize your commute. Save money.</p>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                <span class="icon">🌙</span>
+            </button>
         </header>
 
         <main>
             <section class="card input-section">
                 <div class="form-group" id="pass-display-area" style="display: none;">
-                    <label>Current Pass Status</label>
+                    <h2 class="input-label">Current Pass Status</h2>
                     <div id="detected-pass-display" class="pass-display-box">
                         Detecting...
                     </div>
                 </div>
 
-                <div class="upload-area" id="drop-zone">
+                <div class="upload-area" id="drop-zone" role="button" aria-label="Upload file area" tabindex="0">
                     <input type="file" id="csv-file" accept=".csv" multiple hidden>
-                    <div class="icon">📂</div>
+                    <div class="icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <button id="help-link" class="btn-help-icon" aria-label="How do I get my data?"
+                        title="How do I get my data?">?</button>
                     <p>Drag & drop your SmarTrip CSV(s) here</p>
                     <button class="btn-secondary" onclick="document.getElementById('csv-file').click()">Or Browse
                         Files</button>
-                    <p class="small-text">Export <a href="#" id="help-link"
-                            style="display: block; margin-top: 12px; font-size: 0.9rem; color: var(--primary-color);">How
-                            do
-                            I get my data?</a>
-                        <button id="example-link" class="btn-ai">
-                            Don't have any data?
-                        </button>
+                    <button id="example-link" class="btn-ai">
+                        Don't have any data?
+                    </button>
                 </div>
 
                 <!-- Onboarding Modal -->
-                <div id="onboarding-modal" class="modal hidden">
+                <div id="onboarding-modal" class="modal hidden" role="dialog" aria-modal="true"
+                    aria-labelledby="modal-title">
                     <div class="modal-content">
-                        <h2>Welcome to PassPicker!</h2>
+                        <h2 id="modal-title">Welcome to PassPicker!</h2>
                         <p>To find out if you can save money, you'll need your travel history. Here's how to get it:</p>
                         <ol style="text-align: left; margin: 20px 0; padding-left: 24px; line-height: 1.6;">
                             <li>Go to <a href="https://smartrip.wmata.com" target="_blank">smartrip.wmata.com</a> and
@@ -101,7 +107,7 @@
                 <button id="calculate-btn" class="btn-primary">Calculate Savings</button>
             </section>
 
-            <section id="results-section" class="card results-section hidden">
+            <section id="results-section" class="card results-section hidden" aria-live="polite">
                 <div class="result-header">
                     <h2>Recommendation</h2>
                     <div style="display: flex; gap: 8px; align-items: center;">

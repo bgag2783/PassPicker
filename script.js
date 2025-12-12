@@ -50,6 +50,14 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.classList.add('dragover');
     });
 
+    // Keyboard support for drop zone
+    dropZone.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+        }
+    });
+
     dropZone.addEventListener('dragleave', () => {
         dropZone.classList.remove('dragover');
     });
@@ -82,6 +90,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
         estimationSection.classList.add('hidden');
         calculateAndDisplayResults(tripsWithEstimate);
+    });
+
+    // Modal Focus Trap
+    const modal = document.getElementById('onboarding-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    let lastFocusedElement;
+
+    function openModal() {
+        lastFocusedElement = document.activeElement;
+        modal.classList.remove('hidden');
+        // Find focusable elements
+        const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        modal.addEventListener('keydown', function (e) {
+            if (e.key === 'Tab') {
+                if (e.shiftKey) { /* shift + tab */
+                    if (document.activeElement === firstElement) {
+                        e.preventDefault();
+                        lastElement.focus();
+                    }
+                } else { /* tab */
+                    if (document.activeElement === lastElement) {
+                        e.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            } else if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Focus the first element (close button usually, or we might want to focus the heading text for screen readers? No, interactive element is better)
+        // Wait a tick for visibility
+        setTimeout(() => {
+            closeModalBtn.focus();
+        }, 50);
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        if (lastFocusedElement) {
+            lastFocusedElement.focus();
+        }
+    }
+
+    const helpLink = document.getElementById('help-link');
+    if (helpLink) {
+        helpLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal();
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            closeModal();
+            localStorage.setItem('hasVisited', 'true');
+        });
+    }
+
+    // Auto-open if first visit
+    if (!localStorage.getItem('hasVisited')) {
+        // short delay to ensure transition works
+        setTimeout(() => {
+            openModal();
+        }, 500);
+    }
+
+    // Close on click outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
     });
 
     // Share Feature
@@ -249,6 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show results
         calculateAndDisplayResults(trips);
+
+        // Focus shift is handled in calculateAndDisplayResults, 
+        // but we might want to ensure scrolling happens too since example is explicit user action
+        document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
     }
 
     function generateExampleData() {
@@ -794,6 +881,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Since it varies by month, we should pass the map.
         renderTripTable(rideTrips, bestOption, detectedPasses);
 
+        // Move focus to Share button for better workflow
+        // Use timeout to ensure DOM update and smooth transition
+        setTimeout(() => {
+            const shareBtn = document.getElementById('share-btn');
+            if (shareBtn) shareBtn.focus();
+        }, 100);
+
         // Setup Toggle
         const btn = document.getElementById('view-details-btn');
         const container = document.getElementById('details-table-container');
@@ -1293,26 +1387,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Onboarding Modal Logic
-    const modal = document.getElementById('onboarding-modal');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-    const helpLink = document.getElementById('help-link');
 
-    if (modal && closeModalBtn && helpLink) {
-        // Check if user has visited before
-        if (!localStorage.getItem('hasVisited')) {
-            modal.classList.remove('hidden');
-        }
-
-        closeModalBtn.addEventListener('click', () => {
-            modal.classList.add('hidden');
-            localStorage.setItem('hasVisited', 'true');
-        });
-
-        helpLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            modal.classList.remove('hidden');
-        });
-    }
 });
 
