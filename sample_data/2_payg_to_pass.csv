@@ -1,0 +1,81 @@
+Seq. #,Time,Description,Operator,Entry Location/ Bus Route,Exit Location,Product,Rem. Rides,Change (+/-),Balance
+1,11/03/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$100.00
+2,11/03/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$93.25
+3,11/03/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$93.25
+4,11/03/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$93.25
+5,11/04/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$93.25
+6,11/04/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$86.50
+7,11/04/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$86.50
+8,11/04/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$86.50
+9,11/05/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$86.50
+10,11/05/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$79.75
+11,11/05/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$79.75
+12,11/05/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$79.75
+13,11/06/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$79.75
+14,11/06/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$73.00
+15,11/06/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$73.00
+16,11/06/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$73.00
+17,11/07/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$73.00
+18,11/07/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$66.25
+19,11/07/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$66.25
+20,11/07/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$66.25
+21,11/10/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$66.25
+22,11/10/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$59.50
+23,11/10/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$59.50
+24,11/10/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$59.50
+25,11/11/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$59.50
+26,11/11/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$52.75
+27,11/11/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$52.75
+28,11/11/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$52.75
+29,11/12/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$52.75
+30,11/12/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$46.00
+31,11/12/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$46.00
+32,11/12/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$46.00
+33,11/13/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$46.00
+34,11/13/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$39.25
+35,11/13/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$39.25
+36,11/13/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$39.25
+37,11/14/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$39.25
+38,11/14/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$32.50
+39,11/14/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$32.50
+40,11/14/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$32.50
+41,11/17/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$32.50
+42,11/17/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$25.75
+43,11/17/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$25.75
+44,11/17/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$25.75
+45,11/18/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$25.75
+46,11/18/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$19.00
+47,11/18/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$19.00
+48,11/18/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$19.00
+49,11/19/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$19.00
+50,11/19/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$12.25
+51,11/19/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$12.25
+52,11/19/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$12.25
+53,11/20/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$12.25
+54,11/20/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$5.50
+55,11/20/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$5.50
+56,11/20/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$5.50
+57,11/21/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$5.50
+58,11/21/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$-1.25
+59,11/21/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$-1.25
+60,11/21/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$-1.25
+61,11/24/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$-1.25
+62,11/24/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$-8.00
+63,11/24/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$-8.00
+64,11/24/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$-8.00
+65,11/25/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$-8.00
+66,11/25/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$-14.75
+67,11/25/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$-14.75
+68,11/25/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$-14.75
+69,11/26/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$-14.75
+70,11/26/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$-21.50
+71,11/26/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$-21.50
+72,11/26/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$-21.50
+73,11/27/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$-21.50
+74,11/27/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$-28.25
+75,11/27/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$-28.25
+76,11/27/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$-28.25
+77,11/28/25 08:00 AM,Entry,Metrorail,Shady Grove,,Stored Value,,$0.00,$-28.25
+78,11/28/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Stored Value,,($6.75),$-35.00
+79,11/28/25 05:00 PM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$-35.00
+80,11/28/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Stored Value,,($6.75),$-35.00

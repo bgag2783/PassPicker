@@ -1,0 +1,13 @@
+Seq. #,Time,Description,Operator,Entry Location/ Bus Route,Exit Location,Product,Rem. Rides,Change (+/-),Balance
+1,11/01/25 10:00 AM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$48.00
+2,11/01/25 10:20 AM,Exit,Metrorail,Metro Center,Dupont Circle,Stored Value,,($2.25),$45.75
+3,11/01/25 02:00 PM,Entry,Metrorail,Dupont Circle,,Stored Value,,$0.00,$45.75
+4,11/01/25 02:20 PM,Exit,Metrorail,Dupont Circle,Metro Center,Stored Value,,($2.25),$43.50
+5,11/08/25 10:00 AM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$43.50
+6,11/08/25 10:20 AM,Exit,Metrorail,Metro Center,Dupont Circle,Stored Value,,($2.25),$41.25
+7,11/08/25 02:00 PM,Entry,Metrorail,Dupont Circle,,Stored Value,,$0.00,$41.25
+8,11/08/25 02:20 PM,Exit,Metrorail,Dupont Circle,Metro Center,Stored Value,,($2.25),$39.00
+9,11/15/25 11:00 AM,Entry,Metrorail,Metro Center,,Stored Value,,$0.00,$39.00
+10,11/15/25 11:30 AM,Exit,Metrorail,Metro Center,Smithsonian,Stored Value,,($2.25),$36.75
+11,11/15/25 03:00 PM,Entry,Metrorail,Smithsonian,,Stored Value,,$0.00,$36.75
+12,11/15/25 03:30 PM,Exit,Metrorail,Smithsonian,Metro Center,Stored Value,,($2.25),$34.50

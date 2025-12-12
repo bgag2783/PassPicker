@@ -1,0 +1,81 @@
+Seq. #,Time,Description,Operator,Entry Location/ Bus Route,Exit Location,Product,Rem. Rides,Change (+/-),Balance
+1,11/03/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$100.00
+2,11/03/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$95.50
+3,11/03/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$95.50
+4,11/03/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$95.50
+5,11/04/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$95.50
+6,11/04/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$91.00
+7,11/04/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$91.00
+8,11/04/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$91.00
+9,11/05/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$91.00
+10,11/05/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$86.50
+11,11/05/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$86.50
+12,11/05/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$86.50
+13,11/06/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$86.50
+14,11/06/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$82.00
+15,11/06/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$82.00
+16,11/06/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$82.00
+17,11/07/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$82.00
+18,11/07/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$77.50
+19,11/07/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$77.50
+20,11/07/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$77.50
+21,11/10/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$77.50
+22,11/10/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$73.00
+23,11/10/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$73.00
+24,11/10/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$73.00
+25,11/11/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$73.00
+26,11/11/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$68.50
+27,11/11/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$68.50
+28,11/11/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$68.50
+29,11/12/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$68.50
+30,11/12/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$64.00
+31,11/12/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$64.00
+32,11/12/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$64.00
+33,11/13/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$64.00
+34,11/13/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$59.50
+35,11/13/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$59.50
+36,11/13/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$59.50
+37,11/14/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$59.50
+38,11/14/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$55.00
+39,11/14/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$55.00
+40,11/14/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$55.00
+41,11/17/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$55.00
+42,11/17/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$50.50
+43,11/17/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$50.50
+44,11/17/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$50.50
+45,11/18/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$50.50
+46,11/18/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$46.00
+47,11/18/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$46.00
+48,11/18/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$46.00
+49,11/19/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$46.00
+50,11/19/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$41.50
+51,11/19/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$41.50
+52,11/19/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$41.50
+53,11/20/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$41.50
+54,11/20/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$37.00
+55,11/20/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$37.00
+56,11/20/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$37.00
+57,11/21/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$37.00
+58,11/21/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$32.50
+59,11/21/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$32.50
+60,11/21/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$32.50
+61,11/24/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$32.50
+62,11/24/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$28.00
+63,11/24/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$28.00
+64,11/24/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$28.00
+65,11/25/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$28.00
+66,11/25/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$23.50
+67,11/25/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$23.50
+68,11/25/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$23.50
+69,11/26/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$23.50
+70,11/26/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$19.00
+71,11/26/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$19.00
+72,11/26/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$19.00
+73,11/27/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$19.00
+74,11/27/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$14.50
+75,11/27/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$14.50
+76,11/27/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$14.50
+77,11/28/25 08:00 AM,Entry,Metrorail,Shady Grove,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$14.50
+78,11/28/25 08:45 AM,Exit,Metrorail,Shady Grove,Metro Center,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$10.00
+79,11/28/25 05:00 PM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $2.25 Price Point,,$0.00,$10.00
+80,11/28/25 05:45 PM,Exit,Metrorail,Metro Center,Shady Grove,Monthly Unlimited Pass $2.25 Price Point,,($4.50),$10.00

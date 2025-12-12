@@ -1,0 +1,7 @@
+Seq. #,Time,Description,Operator,Entry Location/ Bus Route,Exit Location,Product,Rem. Rides,Change (+/-),Balance
+1,11/01/25 08:00 AM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $6.75 Price Point,,$0.00,$21.45
+2,11/01/25 08:20 AM,Exit,Metrorail,Metro Center,Dupont Circle,Monthly Unlimited Pass $6.75 Price Point,,$0.00,$21.45
+3,11/05/25 02:00 PM,Entry,Metrorail,Dupont Circle,,Monthly Unlimited Pass $6.75 Price Point,,$0.00,$21.45
+4,11/05/25 02:20 PM,Exit,Metrorail,Dupont Circle,Metro Center,Monthly Unlimited Pass $6.75 Price Point,,$0.00,$21.45
+5,11/20/25 10:00 AM,Entry,Metrorail,Metro Center,,Monthly Unlimited Pass $6.75 Price Point,,$0.00,$21.45
+6,11/20/25 10:20 AM,Exit,Metrorail,Metro Center,Gallery Pl-Chinatown,Monthly Unlimited Pass $6.75 Price Point,,$0.00,$21.45
