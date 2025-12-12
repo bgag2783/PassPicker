@@ -91,5 +91,5 @@ const stationOverrides = {
     "woodley park-zoo": "Woodley Park-Zoo/Adams Morgan",
     "anacostia n": "Anacostia",
     "anacostia s": "Anacostia",
-    "ga ave-petworth": "Georgia Avenue-Petworth"
+    "ga ave-petworth": "Georgia Ave-Petworth"
 };
