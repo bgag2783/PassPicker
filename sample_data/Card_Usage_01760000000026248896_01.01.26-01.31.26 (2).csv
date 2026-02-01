@@ -1,0 +1,105 @@
+Seq. #,Time,Description,Operator,Entry Location/ Bus Route,Exit Location,Product,Rem. Rides,Change (+/-),Balance
+8,01/29/26 10:11 PM,Exit,Metrorail,NoMa Gallaudet North,Takoma,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$27.30
+7,01/29/26 09:46 PM,Entry,Metrorail,NoMa Gallaudet North,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$27.30
+6,01/29/26 05:49 PM,Exit,Metrorail,Waterfront,Shaw-Hwrd U S,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$27.30
+5,01/29/26 05:30 PM,Entry,Metrorail,Waterfront,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$27.30
+4,01/29/26 12:39 PM,Exit,Metrorail,Takoma,Waterfront,Monthly Unlimited Pass $2.50 Price Point,,($1.85),$27.30
+3,01/29/26 11:56 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$29.15
+2,01/29/26 11:56 AM,Cancel Threshold Autoload,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$29.15
+1,01/27/26 08:59 PM,Exit,Metrorail,NoMa Gallaudet North,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$29.15
+0,01/27/26 08:41 PM,Entry,Metrorail,NoMa Gallaudet North,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$29.80
+15,01/27/26 08:41 PM,Threshold Autoload,Metrorail,NoMa Gallaudet North,,Stored Value,,$20.00,$29.80
+14,01/27/26 06:00 PM,Exit,Metrorail,Takoma,NoMa Gallaudet North,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$9.80
+13,01/27/26 05:42 PM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$10.45
+12,01/27/26 05:42 PM,Threshold Autoload,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$10.45
+11,01/22/26 05:32 PM,Exit,Metrorail,Judiciary Sq E,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($1.10),$10.45
+10,01/22/26 05:16 PM,Entry,Metrorail,Judiciary Sq E,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$11.55
+9,01/22/26 07:35 AM,Exit,Metrorail,Takoma,Judiciary Sq E,Monthly Unlimited Pass $2.50 Price Point,,($1.10),$11.55
+8,01/22/26 07:20 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$12.65
+7,01/21/26 06:56 PM,Exit,Metrorail,Metro Center W,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($1.20),$12.65
+6,01/21/26 06:35 PM,Entry,Metrorail,Metro Center W,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$13.85
+5,01/21/26 05:18 PM,Exit,Metrorail,Waterfront,Gal Pl-Chntwn N,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$13.85
+4,01/21/26 05:09 PM,Entry,Metrorail,Waterfront,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$13.85
+3,01/21/26 07:47 AM,Exit,Metrorail,Takoma,NoMa Gallaudet South,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$13.85
+2,01/21/26 07:29 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$14.50
+1,01/20/26 05:12 PM,Exit,Metrorail,Judiciary Sq E,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($1.10),$14.50
+0,01/20/26 04:53 PM,Entry,Metrorail,Judiciary Sq E,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$15.60
+15,01/20/26 07:51 AM,Exit,Metrorail,Takoma,Judiciary Sq E,Monthly Unlimited Pass $2.50 Price Point,,($1.10),$15.60
+14,01/20/26 07:33 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.70
+13,01/17/26 08:06 PM,Entry,Metrobus,D40 - 7th St-Georgia Ave,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.70
+12,01/17/26 07:39 PM,Exit,Metrorail,College Pk-U MD,Forest Glen,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.70
+11,01/17/26 07:00 PM,Entry,Metrorail,College Pk-U MD,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.70
+10,01/17/26 06:16 PM,Exit,Metrorail,Greenbelt,College Pk-U MD,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.70
+9,01/17/26 06:08 PM,Entry,Metrorail,Greenbelt,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.70
+7,01/17/26 05:24 PM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.70
+6,01/15/26 10:12 PM,Exit,Metrorail,NoMa Gallaudet North,Takoma,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.70
+5,01/15/26 09:43 PM,Entry,Metrorail,NoMa Gallaudet North,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.70
+4,01/15/26 07:19 PM,Exit,Metrorail,Takoma,NoMa Gallaudet North,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$16.70
+3,01/15/26 07:04 PM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$17.35
+2,01/14/26 05:42 PM,Exit,Metrorail,Judiciary Sq E,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($1.10),$17.35
+1,01/14/26 05:26 PM,Entry,Metrorail,Judiciary Sq E,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$18.45
+0,01/14/26 07:44 AM,Exit,Metrorail,Takoma,Judiciary Sq E,Monthly Unlimited Pass $2.50 Price Point,,($1.10),$18.45
+15,01/14/26 07:26 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$19.55
+14,01/13/26 09:11 PM,Exit,Metrorail,NoMa Gallaudet North,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$19.55
+13,01/13/26 08:52 PM,Entry,Metrorail,NoMa Gallaudet North,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.20
+12,01/13/26 06:35 PM,Exit,Metrorail,Columbia Hgts,NoMa Gallaudet North,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.20
+11,01/13/26 06:14 PM,Entry,Metrorail,Columbia Hgts,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.20
+10,01/13/26 05:58 PM,Exit,Metrorail,Waterfront,Columbia Hgts,Monthly Unlimited Pass $2.50 Price Point,,($0.15),$20.20
+9,01/13/26 05:31 PM,Entry,Metrorail,Waterfront,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.35
+8,01/13/26 07:51 AM,Exit,Metrorail,Takoma,Judiciary Sq W,Monthly Unlimited Pass $2.50 Price Point,,($1.10),$20.35
+7,01/13/26 07:34 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$21.45
+6,01/12/26 08:11 PM,Exit,Metrorail,NoMa Gallaudet South,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$21.45
+5,01/12/26 07:53 PM,Entry,Metrorail,NoMa Gallaudet South,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$22.10
+4,01/12/26 06:38 PM,Exit,Metrorail,Takoma,NoMa Gallaudet South,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$22.10
+3,01/12/26 06:22 PM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$22.75
+2,01/12/26 05:46 PM,Exit,Metrorail,Judiciary Sq E,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($1.10),$22.75
+1,01/12/26 05:25 PM,Entry,Metrorail,Judiciary Sq E,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$23.85
+0,01/12/26 05:14 PM,Exit,Metrorail,Waterfront,Waterfront,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$23.85
+15,01/12/26 05:06 PM,Entry,Metrorail,Waterfront,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$23.85
+14,01/12/26 07:58 AM,Exit,Metrorail,Takoma,Waterfront,Monthly Unlimited Pass $2.50 Price Point,,($1.85),$23.85
+13,01/12/26 07:25 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+12,01/11/26 05:12 PM,Exit,Metrorail,NoMa Gallaudet North,Takoma,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+11,01/11/26 05:00 PM,Entry,Metrorail,NoMa Gallaudet North,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+10,01/11/26 03:59 PM,Exit,Metrorail,Takoma,NoMa Gallaudet South,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+9,01/11/26 03:45 PM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+8,01/11/26 03:01 PM,Exit,Metrorail,NoMa Gallaudet South,Takoma,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+7,01/11/26 02:47 PM,Entry,Metrorail,NoMa Gallaudet South,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+6,01/11/26 02:05 PM,Exit,Metrorail,Foggy Bottom,NoMa Gallaudet South,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+5,01/11/26 01:50 PM,Entry,Metrorail,Foggy Bottom,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+4,01/11/26 11:30 AM,Exit,Metrorail,Takoma,Takoma,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+3,01/11/26 11:29 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$25.70
+2,01/09/26 06:43 PM,Exit,Metrorail,NoMa Gallaudet North,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$25.70
+1,01/09/26 06:26 PM,Entry,Metrorail,NoMa Gallaudet North,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$26.35
+0,01/09/26 05:39 PM,Exit,Metrorail,Takoma,NoMa Gallaudet South,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$26.35
+15,01/09/26 05:25 PM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$27.00
+14,01/08/26 09:38 PM,Exit,Metrorail,Mt Vern Sq-UDC,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($0.90),$27.00
+13,01/08/26 09:17 PM,Entry,Metrorail,Mt Vern Sq-UDC,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$27.90
+12,01/08/26 06:23 PM,Exit,Metrorail,Waterfront,Mt Vern Sq-UDC,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$27.90
+11,01/08/26 06:11 PM,Entry,Metrorail,Waterfront,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$27.90
+10,01/08/26 08:05 AM,Exit,Metrorail,Takoma,Waterfront,Monthly Unlimited Pass $2.50 Price Point,,($1.85),$27.90
+9,01/08/26 07:34 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$29.75
+8,01/07/26 05:33 PM,Exit,Metrorail,Waterfront,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($1.85),$29.75
+7,01/07/26 05:04 PM,Entry,Metrorail,Waterfront,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$31.60
+6,01/07/26 12:10 PM,Exit,Metrorail,Waterfront,Navy Yard E,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$31.60
+5,01/07/26 12:02 PM,Entry,Metrorail,Waterfront,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$31.60
+4,01/07/26 07:51 AM,Sale,WMATA POS (20),Central Computer,,Stored Value,,$20.00,$31.60
+3,01/07/26 07:50 AM,Exit,Metrorail,Takoma,Waterfront,Monthly Unlimited Pass $2.50 Price Point,,($1.85),$11.60
+2,01/07/26 07:24 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$13.45
+1,01/06/26 05:43 PM,Exit,Metrorail,Waterfront,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($1.85),$13.45
+0,01/06/26 05:08 PM,Entry,Metrorail,Waterfront,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$15.30
+15,01/06/26 07:40 AM,Exit,Metrorail,Takoma,Gal Pl-Chntwn N,Monthly Unlimited Pass $2.50 Price Point,,($1.15),$15.30
+14,01/06/26 07:19 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$16.45
+13,01/05/26 05:38 PM,Exit,Metrorail,Waterfront,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($1.85),$16.45
+12,01/05/26 05:07 PM,Entry,Metrorail,Waterfront,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$18.30
+11,01/05/26 07:55 AM,Exit,Metrorail,Takoma,Waterfront,Monthly Unlimited Pass $2.50 Price Point,,($1.85),$18.30
+10,01/05/26 07:22 AM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.15
+9,01/02/26 05:55 PM,Exit,Metrorail,Brookland,Takoma,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.15
+8,01/02/26 05:48 PM,Entry,Metrorail,Brookland,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.15
+7,01/02/26 05:27 PM,Exit,Metrorail,Takoma,Brookland,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.15
+6,01/02/26 05:18 PM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.15
+5,01/01/26 03:42 PM,Exit,Metrorail,NoMa Gallaudet South,Takoma,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$20.15
+4,01/01/26 03:28 PM,Entry,Metrorail,NoMa Gallaudet South,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$20.80
+3,01/01/26 01:17 PM,Exit,Metrorail,Takoma,NoMa Gallaudet North,Monthly Unlimited Pass $2.50 Price Point,,($0.65),$20.80
+2,01/01/26 01:01 PM,Entry,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$21.45
+1,01/01/26 01:01 PM,Setup Threshold Autoload,Metrorail,Takoma,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$21.45
+0,01/01/26 07:05 AM,Sale,WMATA POS (20),Central Computer,,Monthly Unlimited Pass $2.50 Price Point,,$0.00,$21.45

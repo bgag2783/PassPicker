@@ -1836,3 +1836,6 @@ const stationsData = [
     }
   }
 ];
+if (typeof module !== 'undefined') {
+    module.exports = stationsData;
+}

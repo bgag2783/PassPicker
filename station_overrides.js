@@ -98,3 +98,7 @@ const stationOverrides = {
     "ga ave-petworth": "Georgia Ave-Petworth",
     "college pk-u md": "College Park-U of Md"
 };
+
+if (typeof module !== 'undefined') {
+    module.exports = stationOverrides;
+}

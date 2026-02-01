@@ -1,3 +1,6 @@
+// Global State for testing and UI
+let stationErrors = new Set();
+
 document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('csv-file');
@@ -14,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTrips = [];
     let latestAnalysis = null; // Store results for sharing
     let detectedPassLevel = 0; // 0 means no pass
-    let stationErrors = new Set();
+    // stationErrors is now global
     let isExampleData = false;
 
     // Data is now loaded via <script> tags (stationsData, faresData, stationOverrides)
@@ -1444,3 +1447,286 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+
+// Extracted Functions for Testing
+function deduplicateTrips(trips) {
+    const seen = new Set();
+    return trips.filter(trip => {
+        // Create a unique key for the trip
+        // Use Date + Time + Balance + Description + Operator
+        // Note: Seq # might not be unique across files if they overlap or are from different exports?
+        // Actually Seq # should be unique per card, but let's be safe with content.
+        const key = `${trip.date}-${trip.operator}-${trip.entry}-${trip.exit}-${trip.balance}`;
+        if (seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+}
+
+function resolveFares(trips) {
+    if (!typeof stationsData === 'undefined' || !stationsData.length || !faresData.length) {
+        console.warn("Missing reference data:", { stations: typeof stationsData !== 'undefined' ? stationsData.length : 'undefined' });
+        return trips;
+    }
+
+    return trips.map(trip => {
+        // If it's a pass trip, we want to know the *full value* of the trip.
+        // Even if it had a surcharge (cost > 0), the "value" is higher.
+        if (trip.isPassTrip) {
+            if (trip.operator === 'Metrorail') {
+                if (trip.entry && trip.exit) {
+                    const fare = lookupFare(trip.entry, trip.exit, trip.date);
+                    if (fare !== null) {
+                        return { ...trip, cost: fare, isEstimated: false };
+                    } else {
+                        // Error already collected
+                    }
+                }
+            } else if (trip.operator === 'Metrobus') {
+                // ... same bus logic ...
+                let fare = 2.00;
+                if (trip.entry && trip.entry.toLowerCase().includes('express')) {
+                    fare = 4.25;
+                }
+                return { ...trip, cost: fare, isEstimated: false };
+            }
+        }
+        return trip;
+    });
+}
+
+function lookupFare(entryName, exitName, dateStr) {
+    // 1. Normalize names
+    const entryStation = findStation(entryName);
+    const exitStation = findStation(exitName);
+
+    if (!entryStation || !exitStation) return null;
+
+    // Handle same station entry/exit
+    if (entryStation.Code === exitStation.Code) {
+        return 0;
+    }
+
+    // 2. Find fare pair
+    // faresData has { o: code, d: code, p: price, op: price }
+    const fareInfo = faresData.find(f => f.o === entryStation.Code && f.d === exitStation.Code);
+
+    if (!fareInfo) {
+        stationErrors.add(`Fare not found: ${entryStation.Name} -> ${exitStation.Name}`);
+        return null;
+    }
+
+    // 3. Determine Peak vs Off-Peak
+    // This is complex. WMATA peak hours:
+    // Weekdays: 5:00-9:30 AM, 3:00-7:00 PM
+    // Weekends: Off-peak
+    // We need to parse dateStr "MM/DD/YY HH:MM AM/PM"
+    const date = new Date(dateStr); // This might not work reliably across browsers for "10/30/25 09:07 PM"
+    // Better to parse manually or use a robust parser. 
+    // Let's try a simple manual parse for the specific format if Date() fails, 
+    // but usually modern JS handles "MM/DD/YY HH:MM AM/PM" okay-ish? 
+    // Actually, "10/30/25" might be read as 1925 or 2025. 
+    // Let's assume 20xx.
+
+    const isPeak = checkPeak(date);
+    return isPeak ? fareInfo.p : fareInfo.op;
+}
+
+function findStation(name) {
+    if (!name) return null;
+    const cleanName = name.toLowerCase().trim();
+    // Try exact match first
+    let station = stationsData.find(s => s.Name.toLowerCase() === cleanName);
+    if (station) return station;
+
+    // Get the station from the hardcoded override list (Case-Insensitive Key Search)
+    if (typeof stationOverrides !== 'undefined') {
+        const overrideKey = Object.keys(stationOverrides).find(k => k.toLowerCase().trim() === cleanName);
+        if (overrideKey) {
+            return stationsData.find(s => s.Name === stationOverrides[overrideKey]);
+        }
+    }
+
+
+    stationErrors.add(`Station not found: ${name}`);
+    return null;
+}
+
+function checkPeak(date) {
+    const day = date.getDay(); // 0 = Sun, 6 = Sat
+    if (day === 0 || day === 6) return false; // Weekend is off-peak
+
+    const hour = date.getHours();
+    const min = date.getMinutes();
+    const time = hour + min / 60;
+
+    // Official WMATA Fare Schedule (Confirmed via Screenshot):
+    // Weekday Peak: 5:00 AM - 9:30 PM
+    // Weekday Off-Peak: After 9:30 PM
+    // Weekends: Off-Peak
+
+    if (time >= 5 && time < 21.5) {
+        return true;
+    }
+    return false;
+}
+
+function parseCSV(text) {
+    const lines = text.split('\n');
+    const trips = [];
+
+    // Headers: Seq. #,Time,Description,Operator,Entry Location/ Bus Route,Exit Location,Product,Rem. Rides,Change (+/-),Balance
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        // Regex to split by comma, ignoring commas in quotes
+        const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+
+        // Skip header
+        if (columns[0] === 'Seq. #' || columns[0].includes('Seq')) continue;
+
+        // Ensure enough columns (at least 9 for Change (+/-))
+        if (columns.length < 9) continue;
+
+        let time = columns[1];
+        // Normalize Date Year (MM/DD/YY -> MM/DD/YYYY)
+        // Chrome 'new Date("01/01/26")' might default to 1926, which shifts weekdays.
+        // We force 20xx for years < 100.
+        if (time && time.match(/^\d{1,2}\/\d{1,2}\/\d{2}\s/)) {
+            const parts = time.split(' '); // Date Time AM/PM
+            const dateParts = parts[0].split('/'); // MM, DD, YY
+            if (dateParts[2].length === 2) {
+                const year = parseInt(dateParts[2], 10);
+                // Assume 20xx
+                const fullYear = 2000 + year;
+                parts[0] = `${dateParts[0]}/${dateParts[1]}/${fullYear}`;
+                time = parts.join(' ');
+            }
+        }
+        const description = columns[2];
+        const operator = columns[3];
+        const entryLoc = columns[4]; // Entry Location/ Bus Route
+        const exitLoc = columns[5];  // Exit Location
+
+        const product = columns[6] || "";
+        const changeStr = columns[8];
+
+        // Parse Cost
+        let cost = 0;
+        if (changeStr) {
+            const cleanChange = changeStr.replace(/[$,()]/g, ''); // Remove $ , and ()
+            const val = parseFloat(cleanChange);
+
+            // In the CSV, negative numbers are often in parens like ($3.15) or just negative
+            // We stripped parens, so check if original had parens or minus sign
+            const isNegative = changeStr.includes('(') || changeStr.includes('-');
+
+            if (isNegative && val > 0) {
+                cost = val;
+            } else if (!isNegative && val === 0) {
+                cost = 0;
+            } else {
+                // Positive value, likely reload or error correction
+                // But wait, sometimes 0.00 is a ride with a pass.
+                // If it's a ride (Entry/Exit) and cost is 0, it's 0.
+            }
+        }
+
+        // Filter for rides
+        // Logic:
+        // If Metrorail: Count 'Exit' rows.
+        // If Metrobus: Count 'Entry' rows.
+
+        let isRide = false;
+
+        if (operator === 'Metrorail' && description === 'Exit') {
+            isRide = true;
+        } else if (operator === 'Metrobus' && description === 'Entry') {
+            isRide = true;
+        }
+
+        if (isRide) {
+            let tripDate = time;
+
+            // For Metrorail Exits, we need the Entry Time to correctly determine Peak/Off-Peak.
+            // Since CSV is typically reverse chronological, the Entry is in a later row (higher index).
+            if (operator === 'Metrorail' && description === 'Exit') {
+                // Look ahead for the corresponding Entry
+                for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+                    const nextLine = lines[j].trim();
+                    if (!nextLine) continue;
+                    // Regex split used above
+                    const nextCols = nextLine.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (nextCols[3] === 'Metrorail' && nextCols[2] === 'Entry' && nextCols[4] === entryLoc) {
+                        // Found matching entry
+                        // Use its time
+                        tripDate = nextCols[1];
+
+                        // Also Normalize the Entry Date Year if needed
+                        if (tripDate && tripDate.match(/^\d{1,2}\/\d{1,2}\/\d{2}\s/)) {
+                            const p = tripDate.split(' ');
+                            const dp = p[0].split('/');
+                            if (dp[2].length === 2) {
+                                tripDate = `${dp[0]}/${dp[1]}/20${dp[2]} ${p[1]} ${p[2]}`;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            const isPassTrip = product.toLowerCase().includes('pass') || product.toLowerCase().includes('monthly');
+
+            trips.push({
+                date: tripDate, // Use Entry Time if found
+                operator: operator,
+                entry: entryLoc,
+                exit: exitLoc,
+                cost: cost,
+                surcharge: isPassTrip ? cost : 0,
+                product: product,
+                isPassTrip: isPassTrip
+            });
+        }
+    }
+    return trips;
+}
+
+function detectPassFromTrips(trips) {
+    // Returns a map of "YYYY-M" -> passPrice
+    const monthlyPasses = {};
+
+    trips.forEach(trip => {
+        // Check if this trip used a pass
+        if (trip.product && trip.product.includes('Monthly Unlimited Pass')) {
+            const match = trip.product.match(/\$(\d+\.\d{2})/);
+            if (match) {
+                const price = parseFloat(match[1]);
+                const date = new Date(trip.date);
+                // Key by month of usage
+                const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+
+                // Store/Overwrite (assuming same pass for whole month)
+                monthlyPasses[key] = price;
+            }
+        }
+    });
+
+    return monthlyPasses;
+}
+
+if (typeof module !== 'undefined') {
+    module.exports = {
+        deduplicateTrips,
+        resolveFares,
+        lookupFare,
+        findStation,
+        checkPeak,
+        parseCSV,
+        detectPassFromTrips
+    };
+}

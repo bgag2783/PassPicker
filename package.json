@@ -1,0 +1,24 @@
+{
+  "name": "passpicker",
+  "version": "1.0.0",
+  "description": "A simple, private, and static web application to help Washington D.C. area commuters determine the most cost-effective WMATA Monthly Unlimited Pass based on their actual travel history.",
+  "main": "fares.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bgag2783/PassPicker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bgag2783/PassPicker/issues"
+  },
+  "homepage": "https://github.com/bgag2783/PassPicker#readme",
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0"
+  }
+}
