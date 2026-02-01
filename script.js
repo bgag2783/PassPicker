@@ -406,6 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dateObj.setHours(h, m, 0);
             const dateStr = dateObj.toString();
 
+
             // Lookup EXACT fare
             const cost = lookupFare(entry.Name, exit.Name, dateStr);
 
@@ -577,11 +578,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let station = stationsData.find(s => s.Name.toLowerCase() === cleanName);
         if (station) return station;
 
-        // Get the station from the hardcoded override list
-
-        if (stationOverrides[cleanName]) {
-            return stationsData.find(s => s.Name === stationOverrides[cleanName]);
+        // Get the station from the hardcoded override list (Case-Insensitive Key Search)
+        if (typeof stationOverrides !== 'undefined') {
+            const overrideKey = Object.keys(stationOverrides).find(k => k.toLowerCase().trim() === cleanName);
+            if (overrideKey) {
+                return stationsData.find(s => s.Name === stationOverrides[overrideKey]);
+            }
         }
+
 
         stationErrors.add(`Station not found: ${name}`);
         return null;
@@ -620,9 +624,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const min = date.getMinutes();
         const time = hour + min / 60;
 
-        // Peak: 5:00 - 9:30 (5.0 - 9.5)
-        // Peak: 15:00 - 19:00 (15.0 - 19.0)
-        if ((time >= 5 && time < 9.5) || (time >= 15 && time < 19)) {
+        // Official WMATA Fare Schedule (Confirmed via Screenshot):
+        // Weekday Peak: 5:00 AM - 9:30 PM
+        // Weekday Off-Peak: After 9:30 PM
+        // Weekends: Off-Peak
+
+        if (time >= 5 && time < 21.5) {
             return true;
         }
         return false;
@@ -647,7 +654,21 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ensure enough columns (at least 9 for Change (+/-))
             if (columns.length < 9) continue;
 
-            const time = columns[1];
+            let time = columns[1];
+            // Normalize Date Year (MM/DD/YY -> MM/DD/YYYY)
+            // Chrome 'new Date("01/01/26")' might default to 1926, which shifts weekdays.
+            // We force 20xx for years < 100.
+            if (time && time.match(/^\d{1,2}\/\d{1,2}\/\d{2}\s/)) {
+                const parts = time.split(' '); // Date Time AM/PM
+                const dateParts = parts[0].split('/'); // MM, DD, YY
+                if (dateParts[2].length === 2) {
+                    const year = parseInt(dateParts[2], 10);
+                    // Assume 20xx
+                    const fullYear = 2000 + year;
+                    parts[0] = `${dateParts[0]}/${dateParts[1]}/${fullYear}`;
+                    time = parts.join(' ');
+                }
+            }
             const description = columns[2];
             const operator = columns[3];
             const entryLoc = columns[4]; // Entry Location/ Bus Route
@@ -691,15 +712,44 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (isRide) {
+                let tripDate = time;
+
+                // For Metrorail Exits, we need the Entry Time to correctly determine Peak/Off-Peak.
+                // Since CSV is typically reverse chronological, the Entry is in a later row (higher index).
+                if (operator === 'Metrorail' && description === 'Exit') {
+                    // Look ahead for the corresponding Entry
+                    for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+                        const nextLine = lines[j].trim();
+                        if (!nextLine) continue;
+                        // Regex split used above
+                        const nextCols = nextLine.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                        if (nextCols[3] === 'Metrorail' && nextCols[2] === 'Entry' && nextCols[4] === entryLoc) {
+                            // Found matching entry
+                            // Use its time
+                            tripDate = nextCols[1];
+
+                            // Also Normalize the Entry Date Year if needed
+                            if (tripDate && tripDate.match(/^\d{1,2}\/\d{1,2}\/\d{2}\s/)) {
+                                const p = tripDate.split(' ');
+                                const dp = p[0].split('/');
+                                if (dp[2].length === 2) {
+                                    tripDate = `${dp[0]}/${dp[1]}/20${dp[2]} ${p[1]} ${p[2]}`;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+
                 const isPassTrip = product.toLowerCase().includes('pass') || product.toLowerCase().includes('monthly');
 
                 trips.push({
-                    date: time,
+                    date: tripDate, // Use Entry Time if found
                     operator: operator,
                     entry: entryLoc,
                     exit: exitLoc,
-                    cost: cost, // Initial cost from CSV (surcharge or full fare)
-                    surcharge: isPassTrip ? cost : 0, // Store what was actually paid for this ride
+                    cost: cost,
+                    surcharge: isPassTrip ? cost : 0,
                     product: product,
                     isPassTrip: isPassTrip
                 });
@@ -1043,6 +1093,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateStr = d.toLocaleDateString();
             const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+            // Check for savings with epsilon to handle float math (e.g. 4.35 - 2.50 = 1.84999...)
+            // We only highlight if strictly cheaper by at least 1 cent (rounded)
+            const isCheaper = optimalCost < (yourCost - 0.005);
+
             tr.innerHTML = `
                 <td>${dateStr}</td>
                 <td>${timeStr}</td>
@@ -1050,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${exitName}</td>
                 <td class="cost-cell">$${trip.cost.toFixed(2)}</td>
                 <td class="cost-cell">$${yourCost.toFixed(2)}</td>
-                <td class="cost-cell ${optimalCost < yourCost ? 'highlight-cost' : ''}">$${optimalCost.toFixed(2)}</td>
+                <td class="cost-cell ${isCheaper ? 'highlight-cost' : ''}">$${optimalCost.toFixed(2)}</td>
             `;
             tbody.appendChild(tr);
         });
