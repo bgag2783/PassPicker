@@ -96,7 +96,9 @@ const stationOverrides = {
     "anacostia n": "Anacostia",
     "anacostia s": "Anacostia",
     "ga ave-petworth": "Georgia Ave-Petworth",
-    "college pk-u md": "College Park-U of Md"
+    "college pk-u md": "College Park-U of Md",
+    "southern ave":"Southern Avenue",
+    "congress hgts":"Congress Heights"
 };
 
 if (typeof module !== 'undefined') {
