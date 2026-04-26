@@ -98,7 +98,9 @@ const stationOverrides = {
     "ga ave-petworth": "Georgia Ave-Petworth",
     "college pk-u md": "College Park-U of Md",
     "southern ave":"Southern Avenue",
-    "congress hgts":"Congress Heights"
+    "congress hgts":"Congress Heights",
+    "herndon monroe":"Herndon",
+    "rosslyn east":"Rosslyn"
 };
 
 if (typeof module !== 'undefined') {
