@@ -118,4 +118,27 @@ describe('PassPicker Logic', () => {
         });
     });
 
+    describe('resolveFares (Metrobus)', () => {
+        test('should resolve standard and Limited Stop X routes to $2.25 and Express routes (F19, F28, F81, F83) to $4.80', () => {
+            const busTrips = [
+                { operator: 'Metrobus', entry: 'D50 - 14th St', isPassTrip: true, cost: 0 },
+                { operator: 'Metrobus', entry: 'D5X - 14th St Express', isPassTrip: true, cost: 0 },
+                { operator: 'Metrobus', entry: 'D6X - 16th Street Express', isPassTrip: true, cost: 0 },
+                { operator: 'Metrobus', entry: 'F19 - Express', isPassTrip: true, cost: 0 },
+                { operator: 'Metrobus', entry: 'F28 - Express', isPassTrip: true, cost: 0 },
+                { operator: 'Metrobus', entry: 'F81', isPassTrip: true, cost: 0 },
+                { operator: 'Metrobus', entry: 'F83 - Express', isPassTrip: true, cost: 0 }
+            ];
+
+            const resolved = resolveFares(busTrips);
+            expect(resolved[0].cost).toBe(2.25);
+            expect(resolved[1].cost).toBe(2.25);
+            expect(resolved[2].cost).toBe(2.25);
+            expect(resolved[3].cost).toBe(4.80);
+            expect(resolved[4].cost).toBe(4.80);
+            expect(resolved[5].cost).toBe(4.80);
+            expect(resolved[6].cost).toBe(4.80);
+        });
+    });
+
 });

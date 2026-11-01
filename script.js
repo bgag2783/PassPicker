@@ -83,10 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Apply estimate to pass trips
+        // Apply estimate to pass trips that missing fare data
         const tripsWithEstimate = currentTrips.map(trip => {
-            if (trip.isPassTrip) {
-                return { ...trip, cost: estimatedFare };
+            if (trip.isPassTrip && trip.isEstimated !== false) {
+                return { ...trip, cost: estimatedFare, isEstimated: true };
             }
             return trip;
         });
@@ -525,10 +525,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 } else if (trip.operator === 'Metrobus') {
-                    // ... same bus logic ...
-                    let fare = 2.00;
-                    if (trip.entry && trip.entry.toLowerCase().includes('express')) {
-                        fare = 4.25;
+                    // Express routes (F19, F28, F81, and F83) are $4.80; all others (including Limited Stop X routes) are $2.25
+                    let fare = 2.25;
+                    if (trip.entry && /^(F19|F28|F81|F83)\b/i.test(trip.entry.trim())) {
+                        fare = 4.80;
                     }
                     return { ...trip, cost: fare, isEstimated: false };
                 }
@@ -883,28 +883,32 @@ document.addEventListener('DOMContentLoaded', () => {
             // Compare Total Actual Spend vs Best Option
             const savings = totalActualSpend - bestOption.totalCost;
 
-            if (bestOption.type === 'none') {
+            if (bestOption.type === 'none' && savings > 1.00) {
                 message = "You are overspending on your pass. You should switch to <strong>Pay As You Go</strong>.";
                 badgeClass = "warning";
                 badgeText = "Cancel Pass";
+            } else if (savings > 1.00) {
+                message = `You can save money by switching to the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong>.`;
+                badgeClass = "warning";
+                badgeText = "Switch Pass";
             } else {
-                // Determine if they should upgrade/downgrade/stay
-                // This is tricky if they have different passes in different months.
-                // Let's just compare the *recommended* level to their *most recent* or *average* pass?
-                // Or just generic "Switch to X".
-
-                // Let's find the most common pass level they bought?
-                // Or just say "Switch to $X".
-
-                if (savings > 1.00) { // Threshold for "Save Money"
-                    message = `You can save money by switching to the <strong>$${bestOption.level.toFixed(2)} Monthly Pass</strong>.`;
-                    badgeClass = "warning";
-                    badgeText = "Switch Pass";
+                // Within $1.00 threshold: keep Best Option and Optimal Cost aligned with user's current pass
+                const uniquePassPrices = [...new Set(Object.values(detectedPasses))];
+                if (uniquePassPrices.length === 1) {
+                    bestOption = {
+                        type: 'pass',
+                        level: uniquePassPrices[0],
+                        totalCost: totalActualSpend
+                    };
                 } else {
-                    message = "Perfect! You are using the optimal strategy.";
-                    badgeClass = "success";
-                    badgeText = "Keep As Is";
+                    bestOption = {
+                        ...bestOption,
+                        totalCost: totalActualSpend
+                    };
                 }
+                message = "Perfect! You are using the optimal strategy.";
+                badgeClass = "success";
+                badgeText = "Keep As Is";
             }
         }
 
@@ -1086,8 +1090,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Resolve proper station names
-            const entryStation = findStation(trip.entry);
-            const exitStation = findStation(trip.exit);
+            const entryStation = trip.operator === 'Metrorail' ? findStation(trip.entry) : null;
+            const exitStation = trip.operator === 'Metrorail' ? findStation(trip.exit) : null;
             const entryName = entryStation ? entryStation.Name : (trip.entry || '-');
             const exitName = exitStation ? exitStation.Name : (trip.exit || '-');
 
@@ -1121,9 +1125,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!mapInstance) {
             mapInstance = L.map('map').setView([38.8977, -77.0365], 11); // Center on DC
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                subdomains: 'abcd',
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 maxZoom: 19
             }).addTo(mapInstance);
         } else {
@@ -1135,11 +1138,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Aggregate station visits
+        // Aggregate station visits (Metrorail only)
         const stationVisits = {};
         trips.forEach(t => {
-            if (t.entry) stationVisits[t.entry] = (stationVisits[t.entry] || 0) + 1;
-            if (t.exit) stationVisits[t.exit] = (stationVisits[t.exit] || 0) + 1;
+            if (t.operator === 'Metrorail') {
+                if (t.entry) stationVisits[t.entry] = (stationVisits[t.entry] || 0) + 1;
+                if (t.exit) stationVisits[t.exit] = (stationVisits[t.exit] || 0) + 1;
+            }
         });
 
         // Plot Stations
@@ -1169,13 +1174,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const paths = {};
         trips.forEach(t => {
             if (t.operator === 'Metrorail' && t.entry && t.exit) {
-                const key = [t.entry, t.exit].sort().join('-'); // Undirected graph
+                const key = [t.entry, t.exit].sort().join('|||'); // Undirected graph (avoid splitting hyphenated station names)
                 paths[key] = (paths[key] || 0) + 1;
             }
         });
 
         Object.entries(paths).forEach(([key, count]) => {
-            const [name1, name2] = key.split('-');
+            const [name1, name2] = key.split('|||');
             const s1 = findStation(name1);
             const s2 = findStation(name2);
 
@@ -1206,12 +1211,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const stationCounts = {};
         trips.forEach(t => {
             if (t.entry) {
-                const s = findStation(t.entry);
+                const s = t.operator === 'Metrorail' ? findStation(t.entry) : null;
                 const name = s ? s.Name : t.entry;
                 stationCounts[name] = (stationCounts[name] || 0) + 1;
             }
             if (t.exit) {
-                const s = findStation(t.exit);
+                const s = t.operator === 'Metrorail' ? findStation(t.exit) : null;
                 const name = s ? s.Name : t.exit;
                 stationCounts[name] = (stationCounts[name] || 0) + 1;
             }
@@ -1485,10 +1490,10 @@ function resolveFares(trips) {
                     }
                 }
             } else if (trip.operator === 'Metrobus') {
-                // ... same bus logic ...
-                let fare = 2.00;
-                if (trip.entry && trip.entry.toLowerCase().includes('express')) {
-                    fare = 4.25;
+                // Express routes (F19, F28, F81, and F83) are $4.80; all others (including Limited Stop X routes) are $2.25
+                let fare = 2.25;
+                if (trip.entry && /^(F19|F28|F81|F83)\b/i.test(trip.entry.trim())) {
+                    fare = 4.80;
                 }
                 return { ...trip, cost: fare, isEstimated: false };
             }
